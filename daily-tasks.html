@@ -1169,7 +1169,6 @@ function attachGestures(itemEl) {
     gesture.dx = 0;
     gesture.dy = 0;
     gesture.pointerId = e.pointerId;
-    try { taskEl.setPointerCapture(e.pointerId); } catch {}
     gesture.longPressTimer = setTimeout(enterDragMode, 380);
     taskEl.addEventListener('pointermove', onPointerMove);
     taskEl.addEventListener('pointerup', onPointerEnd);
@@ -1180,6 +1179,7 @@ function attachGestures(itemEl) {
 function enterDragMode() {
   if (!gesture.state || gesture.state !== 'tracking') return;
   gesture.state = 'drag';
+  try { gesture.taskEl.setPointerCapture(gesture.pointerId); } catch {}
   gesture.taskEl.classList.add('dragging');
   gesture.taskItem.classList.add('dragging-active');
   const rect = gesture.taskItem.getBoundingClientRect();
@@ -1205,6 +1205,7 @@ function onPointerMove(e) {
         return;
       } else {
         gesture.state = 'swipe';
+        try { gesture.taskEl.setPointerCapture(gesture.pointerId); } catch {}
       }
     }
   }
