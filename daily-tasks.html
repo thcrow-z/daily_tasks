@@ -40,15 +40,21 @@ html, body {
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  overscroll-behavior-y: contain;
+  overflow: hidden;
 }
 body {
   position: relative;
+}
+.app-scroll {
+  position: fixed;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
   padding-top: max(72px, calc(var(--sa-top) + 64px));
   padding-bottom: max(40px, calc(var(--sa-bottom) + 24px));
 }
@@ -652,7 +658,9 @@ body {
   </svg>
 </button>
 
-<main class="app" id="app"></main>
+<div class="app-scroll" id="app-scroll">
+  <main class="app" id="app"></main>
+</div>
 
 <!-- Settings -->
 <div class="settings-backdrop" id="backdrop"></div>

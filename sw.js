@@ -1,7 +1,7 @@
 /* Daily Tasks — Service Worker
  * Cache-first strategy for the tiny app shell. Bump CACHE_VERSION when shipping changes. */
 
-const CACHE_VERSION = 'daily-tasks-v5';
+const CACHE_VERSION = 'daily-tasks-v6';
 const APP_SHELL = [
   './',
   './index.html',
