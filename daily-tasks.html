@@ -6,7 +6,7 @@
 <title>Daily Tasks</title>
 
 <!-- PWA -->
-<meta name="theme-color" content="#1C1C1E">
+<meta name="theme-color" content="#1A1A1C">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,7 +19,7 @@
 <style>
 :root {
   color-scheme: dark;
-  --bg: #1C1C1E;
+  --bg: #1A1A1C;
   --surface: rgba(255,255,255,0.04);
   --text: #F2F2F4;
   --text-dim: #8E8E93;
@@ -62,7 +62,7 @@ html, body {
 body { transition: background-color 0.45s var(--ease-out), color 0.35s var(--ease-out); }
 body[data-theme="light"] {
   color-scheme: light;
-  --bg: #F3EFE7;
+  --bg: #F7F3EC;
   --surface: rgba(18,18,20,0.05);
   --text: #343436;
   --text-dim: #858078;
@@ -95,9 +95,18 @@ body {
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   padding-top: max(72px, calc(var(--sa-top) + 64px));
-  padding-bottom: max(110px, calc(var(--sa-bottom) + 96px));
+  padding-bottom: 0;
+  background: var(--bg);
 }
 .app-scroll.scroll-lock { overflow: hidden; }
+
+/* Last visible section absorbs the FAB clearance area in its own tone,
+   so the bottom of the scroll blends with the last day instead of body bg. */
+.day.last-section,
+.inbox.last-section {
+  padding-bottom: max(130px, calc(var(--sa-bottom) + 110px));
+  min-height: calc(100dvh - max(72px, var(--sa-top) + 64px));
+}
 
 /* ------------ Grain ------------ */
 .grain-overlay {
@@ -1432,7 +1441,11 @@ applyTheme();
 function applyTheme() {
   document.body.dataset.theme = settings.theme === 'light' ? 'light' : 'dark';
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', settings.theme === 'light' ? '#F3EFE7' : '#1A1A1C');
+  if (meta) meta.setAttribute('content', settings.theme === 'light' ? '#F7F3EC' : '#1A1A1C');
+  // After the theme variables resolve, re-tint the shell to the last section.
+  if (typeof syncShellColors === 'function') {
+    requestAnimationFrame(syncShellColors);
+  }
 }
 
 function saveSettings() {
@@ -1748,6 +1761,21 @@ function mount() {
     app.innerHTML = inboxHTML() + days.map(dayHTML).join('');
   }
   bindAppEvents();
+  syncShellColors();
+}
+
+/**
+ * Tag the last visible section so its tone can extend through the
+ * bottom FAB clearance — keeps the scroll content seamless with its
+ * last day, without forcing the top status bar off the inbox tone.
+ */
+function syncShellColors() {
+  const app = document.getElementById('app');
+  if (!app) return;
+  app.querySelectorAll('.last-section').forEach(el => el.classList.remove('last-section'));
+  const sections = app.querySelectorAll('.day, .inbox');
+  const lastSection = sections[sections.length - 1];
+  if (lastSection) lastSection.classList.add('last-section');
 }
 
 /* ====================== Surgical updates ====================== */
