@@ -704,16 +704,21 @@ html { scroll-behavior: smooth; }
   width: min(380px, 92vw);
   background: var(--panel-bg);
   z-index: 101;
-  transform: translateX(102%);
-  transition: transform 0.5s var(--ease-emph);
+  transform: translateX(calc(100% + 96px));
+  transition: transform 0.5s var(--ease-emph), box-shadow 0.45s var(--ease-emph);
   display: flex; flex-direction: column;
-  box-shadow: -24px 0 64px rgba(0,0,0,0.42), -1px 0 0 var(--divider);
+  /* Same shape as the open shadow but invisible — keeps the transition smooth
+     and prevents the blur from leaking into the viewport when closed. */
+  box-shadow: 0 0 0 0 rgba(0,0,0,0), 0 0 0 0 transparent;
   padding-top: var(--sa-top);
   padding-right: var(--sa-right);
   padding-bottom: var(--sa-bottom);
   will-change: transform;
 }
-.settings-panel.open { transform: translateX(0); }
+.settings-panel.open {
+  transform: translateX(0);
+  box-shadow: -24px 0 64px rgba(0,0,0,0.42), -1px 0 0 var(--divider);
+}
 .settings-header {
   display: flex; justify-content: space-between; align-items: center;
   padding: 22px 24px 16px;
