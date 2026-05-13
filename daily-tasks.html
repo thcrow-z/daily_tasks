@@ -100,12 +100,13 @@ body {
 }
 .app-scroll.scroll-lock { overflow: hidden; }
 
-/* Last visible section absorbs the FAB clearance area in its own tone,
-   so the bottom of the scroll blends with the last day instead of body bg. */
+/* Last visible section absorbs the FAB clearance area in its own tone.
+   flex-grow lets it fill only the REMAINING space (not beyond) so the
+   user can't scroll the last day's header past where it naturally sits. */
 .day.last-section,
 .inbox.last-section {
   padding-bottom: max(130px, calc(var(--sa-bottom) + 110px));
-  min-height: calc(100dvh - max(72px, var(--sa-top) + 64px));
+  flex-grow: 1;
 }
 
 /* ------------ Grain ------------ */
@@ -124,7 +125,11 @@ body {
   max-width: 560px;
   margin: 0 auto;
   padding: 0 max(20px, var(--sa-left)) 0 max(20px, var(--sa-right));
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
+.app > * { flex-shrink: 0; }
 .app > * {
   animation: section-rise 0.55s var(--ease-emph) both;
 }
