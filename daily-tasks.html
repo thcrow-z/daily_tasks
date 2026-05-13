@@ -135,6 +135,89 @@ body {
 .menu-btn svg { width: 18px; height: 18px; }
 
 /* ------------ Day blocks ------------ */
+.inbox {
+  background: var(--day-tone-1);
+  margin: 0 calc(-1 * max(20px, var(--sa-left))) 0 calc(-1 * max(20px, var(--sa-right)));
+  padding: 20px max(20px, var(--sa-left)) 18px max(20px, var(--sa-right));
+}
+.inbox-title {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0;
+  margin-bottom: 12px;
+}
+.quick-capture {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0 10px;
+}
+.quick-capture input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  padding: 6px 0;
+}
+.quick-capture input::placeholder { color: var(--text-dim); }
+.inbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.inbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+}
+.inbox-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  word-break: break-word;
+}
+.inbox-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.inbox-actions button {
+  background: var(--input-bg);
+  border: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  border-radius: 8px;
+  padding: 7px 8px;
+  cursor: pointer;
+}
+.inbox-actions button:hover { background: var(--input-bg-focus); }
+.inbox-delete {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--text-dim);
+}
+.inbox-empty {
+  color: var(--text-dim);
+  font-size: 13px;
+  font-style: italic;
+  padding: 2px 0 0 27px;
+}
+
 .day {
   --day-bg: var(--day-tone-1);
   background: var(--day-bg);
@@ -701,9 +784,37 @@ body {
   outline: none;
 }
 .recur-options input:focus { background: var(--input-bg-focus); border-color: var(--divider); }
+.recur-mode {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+.recur-mode button {
+  min-width: 0;
+  background: var(--input-bg);
+  border: 1px solid transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  border-radius: 8px;
+  padding: 8px 6px;
+  cursor: pointer;
+}
+.recur-mode button.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.recur-options [data-mode-field] { display: none; }
+.recur-template[data-repeat-mode="weekly"] [data-mode-field="weekly"],
+.recur-template[data-repeat-mode="monthly"] [data-mode-field="monthly"],
+.recur-template[data-repeat-mode="interval"] [data-mode-field="interval"] { display: grid; }
 
 @media (max-width: 420px) {
   .recur-options { grid-template-columns: 1fr; }
+  .recur-mode { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .recur-add-btn {
@@ -730,6 +841,13 @@ body {
   background: var(--panel-bg);
 }
 .settings-footer-row { display: flex; gap: 8px; }
+.backup-meta {
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  min-height: 16px;
+}
 .settings-footer button {
   flex: 1;
   background: rgba(255,255,255,0.06);
@@ -844,9 +962,14 @@ body {
       <button id="weekdays-only">Weekdays only</button>
     </div>
     <div class="settings-footer-row">
-      <button id="export-json">Export JSON</button>
-      <button id="import-json">Import JSON</button>
+      <button id="export-json">Download backup</button>
+      <button id="copy-backup">Copy backup</button>
     </div>
+    <div class="settings-footer-row">
+      <button id="import-json">Import JSON</button>
+      <button id="restore-latest">Restore latest</button>
+    </div>
+    <div class="backup-meta" id="backup-meta"></div>
   </div>
 </aside>
 
@@ -867,6 +990,8 @@ const STORAGE = {
   settings:  'daily-tasks-settings-v1',
   templates: 'daily-tasks-templates-v1',
   dismissed: 'daily-tasks-dismissed-v1',
+  inbox:     'daily-tasks-inbox-v1',
+  backups:   'daily-tasks-backups-v1',
 };
 
 /* ====================== Utils ====================== */
@@ -903,6 +1028,8 @@ const pendingCount = list => list.filter(t => !t.done).length;
 const toDateInputValue = v => /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v : '';
 const toDateTimeInputValue = v => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v || '') ? v : '';
 const toTimeInputValue = v => /^\d{2}:\d{2}$/.test(v || '') ? v : '';
+const clampNumber = (v, min, max) => Math.max(min, Math.min(max, Number(v) || min));
+const MS_DAY = 86400000;
 
 function showToast(msg, ms = 2400) {
   const el = document.getElementById('toast');
@@ -917,6 +1044,8 @@ let data       = load(STORAGE.data, {});
 let settings   = load(STORAGE.settings, { visibleDays: [0,1,2,3,4,5,6], showLeftovers: true, theme: 'dark', notifications: false });
 let templates  = load(STORAGE.templates, []);
 let dismissed  = load(STORAGE.dismissed, {});
+let inbox      = load(STORAGE.inbox, []);
+let backups    = load(STORAGE.backups, []);
 let openDays   = new Set();
 let today      = new Date();
 
@@ -936,15 +1065,27 @@ function saveSettings() {
   applyTheme();
 }
 
+function appSnapshot(reason = 'manual') {
+  return {
+    version: 2,
+    reason,
+    exportedAt: new Date().toISOString(),
+    data,
+    inbox,
+    templates,
+    settings,
+    dismissed,
+  };
+}
+
 /* ====================== Recurring materialization ====================== */
 function materializeRecurring() {
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const week = getWeekDays();
   let changed = false;
   templates.forEach(tpl => {
-    week.forEach(d => {
+    getTemplateDates(tpl, week, start).forEach(d => {
       if (d < start) return;
-      if (!tpl.days.includes(d.getDay())) return;
       const k = dateKey(d);
       if (tpl.endDate && compareDateKeys(k, tpl.endDate) > 0) return;
       if (!data[k]) data[k] = [];
@@ -961,7 +1102,45 @@ function materializeRecurring() {
       changed = true;
     });
   });
-  if (changed) save(STORAGE.data, data);
+  if (changed) {
+    save(STORAGE.data, data);
+    scheduleAutoBackup('recurring');
+  }
+}
+
+function templateRepeatMode(tpl) {
+  return ['weekly', 'daily', 'monthly', 'interval'].includes(tpl.repeatMode) ? tpl.repeatMode : 'weekly';
+}
+
+function getTemplateDates(tpl, week, start) {
+  const mode = templateRepeatMode(tpl);
+  const end = tpl.endDate ? parseDateKey(tpl.endDate) : week[week.length - 1];
+  const windowEnd = end < week[week.length - 1] ? end : week[week.length - 1];
+  if (mode === 'weekly') {
+    return week.filter(d => (tpl.days || []).includes(d.getDay()));
+  }
+  if (mode === 'daily') {
+    return week.filter(d => d >= start && d <= windowEnd);
+  }
+  if (mode === 'monthly') {
+    const day = clampNumber(tpl.monthDay || start.getDate(), 1, 31);
+    return week.filter(d => d.getDate() === Math.min(day, daysInMonth(d)));
+  }
+  const interval = clampNumber(tpl.intervalDays || 2, 1, 365);
+  const anchor = tpl.startDate ? parseDateKey(tpl.startDate) : start;
+  return week.filter(d => {
+    if (d < anchor) return false;
+    const diff = Math.round((stripTime(d) - stripTime(anchor)) / MS_DAY);
+    return diff % interval === 0;
+  });
+}
+
+function stripTime(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function daysInMonth(d) {
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
 }
 
 function taskEndKey(task, originKey) {
@@ -1027,6 +1206,7 @@ function moveLeftoverToToday(leftover) {
   removeTaskFromDay(yKey, leftover.id);
   save(STORAGE.data, data);
   dismissLeftover(leftover.id);
+  scheduleAutoBackup('carry-over');
 }
 
 /* ====================== Templates / HTML ====================== */
@@ -1037,6 +1217,7 @@ const ICON_NOTE  = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" s
 const ICON_RECUR = '<svg class="recur-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8 a5 5 0 0 1 8.5 -3.5 L13 6"/><polyline points="13,3 13,6 10,6"/><path d="M13 8 a5 5 0 0 1 -8.5 3.5 L3 10"/><polyline points="3,13 3,10 6,10"/></svg>';
 const ICON_CLOCK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.5"/><path d="M8 4.8 V8 l2.2 1.4"/></svg>';
 const ICON_CAL = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="10" height="9" rx="1.4"/><path d="M5.5 2.8 V5.2 M10.5 2.8 V5.2 M3 6.8 H13"/></svg>';
+const ICON_PLUS = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 3.5 V12.5 M3.5 8 H12.5"/></svg>';
 
 function taskHTML(t, key, originKey = key) {
   const hasNote = !!(t.note && t.note.trim());
@@ -1097,6 +1278,36 @@ function leftoversHTML(leftovers) {
   `;
 }
 
+function inboxHTML() {
+  return `
+    <section class="inbox" data-inbox>
+      <div class="inbox-title">INBOX</div>
+      <form class="quick-capture" id="quick-capture">
+        <div class="checkbox"></div>
+        <input type="text" placeholder="Capture a task..." autocomplete="off" enterkeyhint="done" inputmode="text">
+      </form>
+      <div class="inbox-list">
+        ${inbox.map(t => inboxItemHTML(t)).join('')}
+      </div>
+      ${inbox.length ? '' : '<div class="inbox-empty">Nothing captured.</div>'}
+    </section>
+  `;
+}
+
+function inboxItemHTML(t) {
+  return `
+    <div class="inbox-item" data-inbox-id="${t.id}">
+      <div class="checkbox"></div>
+      <div class="inbox-text" contenteditable="true" enterkeyhint="done" data-action="inbox-edit">${escapeHtml(t.text)}</div>
+      <div class="inbox-actions">
+        <button data-action="inbox-today">Today</button>
+        <button data-action="inbox-tomorrow">Tomorrow</button>
+        <button class="inbox-delete" data-action="inbox-delete" title="Delete">&times;</button>
+      </div>
+    </div>
+  `;
+}
+
 function dayHTML(d) {
   const key = dateKey(d);
   const isToday = isSameDate(d, today);
@@ -1152,13 +1363,14 @@ function mount() {
   const days = getWeekDays().filter(d => settings.visibleDays.includes(d.getDay()));
   if (!days.length) {
     app.innerHTML = `
+      ${inboxHTML()}
       <div class="empty-state">
         <strong>No days selected</strong>
         <span>Open settings (top right) and pick the days you want to see.</span>
       </div>
     `;
   } else {
-    app.innerHTML = days.map(dayHTML).join('');
+    app.innerHTML = inboxHTML() + days.map(dayHTML).join('');
   }
   bindAppEvents();
 }
@@ -1185,6 +1397,7 @@ function toggleTask(key, id) {
   if (!item) return;
   item.done = !item.done;
   save(STORAGE.data, data);
+  scheduleAutoBackup('toggle');
   document.querySelectorAll(`.task-item[data-origin-key="${key}"][data-id="${id}"] .task`).forEach(taskEl => {
     taskEl.classList.toggle('done', item.done);
   });
@@ -1199,15 +1412,17 @@ function deleteTask(key, id) {
     itemEls.forEach(itemEl => itemEl.remove());
     removeTaskFromDay(key, id);
     save(STORAGE.data, data);
+    scheduleAutoBackup('delete');
     mount();
   }, 280);
 }
 
 function addTask(key, text) {
-  const t = { id: uid(), text, done: false, note: '' };
+  const t = createTask(text);
   if (!data[key]) data[key] = [];
   data[key].push(t);
   save(STORAGE.data, data);
+  scheduleAutoBackup('add-task');
   // If day was empty, re-mount to remove empty placeholder
   const wasEmpty = data[key].length === 1;
   if (wasEmpty) {
@@ -1224,6 +1439,47 @@ function addTask(key, text) {
   }
 }
 
+function createTask(text, extra = {}) {
+  return Object.assign({ id: uid(), text, done: false, note: '' }, extra);
+}
+
+function addInboxTask(text) {
+  inbox.unshift(createTask(text));
+  save(STORAGE.inbox, inbox);
+  mount();
+  scheduleAutoBackup('inbox');
+}
+
+function commitInboxEdit(id, newText) {
+  const item = inbox.find(t => t.id === id);
+  if (!item) return;
+  const txt = newText.trim();
+  if (!txt) {
+    deleteInboxTask(id);
+    return;
+  }
+  item.text = txt;
+  save(STORAGE.inbox, inbox);
+}
+
+function deleteInboxTask(id) {
+  inbox = inbox.filter(t => t.id !== id);
+  save(STORAGE.inbox, inbox);
+  mount();
+}
+
+function moveInboxTask(id, targetKey) {
+  const idx = inbox.findIndex(t => t.id === id);
+  if (idx < 0) return;
+  const task = inbox.splice(idx, 1)[0];
+  if (!data[targetKey]) data[targetKey] = [];
+  data[targetKey].push(task);
+  save(STORAGE.inbox, inbox);
+  save(STORAGE.data, data);
+  mount();
+  scheduleAutoBackup('inbox-move');
+}
+
 function commitEdit(key, id, newText) {
   const ref = findTaskRef(key, id);
   const item = ref && ref.task;
@@ -1232,6 +1488,7 @@ function commitEdit(key, id, newText) {
   if (!txt) { deleteTask(key, id); return; }
   item.text = txt;
   save(STORAGE.data, data);
+  scheduleAutoBackup('edit');
 }
 
 function commitNoteEdit(key, id, newNote) {
@@ -1240,6 +1497,7 @@ function commitNoteEdit(key, id, newNote) {
   if (!item) return;
   item.note = newNote.trim();
   save(STORAGE.data, data);
+  scheduleAutoBackup('note');
   document.querySelectorAll(`.task-item[data-origin-key="${key}"][data-id="${id}"]`).forEach(itemEl => {
     itemEl.classList.toggle('has-note', !!item.note);
   });
@@ -1283,6 +1541,7 @@ function commitTaskMeta(key, id, patch) {
   save(STORAGE.data, data);
   mount();
   scheduleReminderCheck();
+  scheduleAutoBackup('meta');
 }
 function placeCaretAtEnd(el) {
   const range = document.createRange();
@@ -1336,6 +1595,48 @@ function handleLeftoversMoveAll() {
 
 /* ====================== Event delegation ====================== */
 function bindAppEvents() {
+  const quickCapture = document.getElementById('quick-capture');
+  if (quickCapture) {
+    const captureTask = () => {
+      const input = quickCapture.querySelector('input');
+      const txt = input.value.trim();
+      if (!txt) return;
+      addInboxTask(txt);
+      setTimeout(() => {
+        const nextInput = document.querySelector('#quick-capture input');
+        if (nextInput) { nextInput.value = ''; nextInput.focus(); }
+      }, 0);
+    };
+    quickCapture.addEventListener('submit', e => {
+      e.preventDefault();
+      captureTask();
+    });
+    quickCapture.querySelector('input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        captureTask();
+      }
+    });
+  }
+  document.querySelectorAll('.inbox-item').forEach(item => {
+    const id = item.dataset.inboxId;
+    const textEl = item.querySelector('[data-action="inbox-edit"]');
+    textEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); textEl.blur(); }
+    });
+    textEl.addEventListener('blur', () => commitInboxEdit(id, textEl.textContent));
+    item.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      e.stopPropagation();
+      if (btn.dataset.action === 'inbox-today') moveInboxTask(id, dateKey(today));
+      if (btn.dataset.action === 'inbox-tomorrow') {
+        const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+        moveInboxTask(id, dateKey(tomorrow));
+      }
+      if (btn.dataset.action === 'inbox-delete') deleteInboxTask(id);
+    });
+  });
   document.querySelectorAll('.day-header').forEach(h => {
     h.addEventListener('click', () => toggleDayOpen(h.dataset.key));
   });
@@ -1603,6 +1904,7 @@ function commitReorder() {
       const moved = arr.splice(i, 1)[0];
       arr.splice(Math.max(0, Math.min(newIdx, arr.length)), 0, moved);
       save(STORAGE.data, data);
+      scheduleAutoBackup('reorder');
     }
     rerenderDay(displayKey);
   }
@@ -1620,6 +1922,7 @@ function moveTaskToDay(originKey, id, targetKey) {
   data[targetKey].push(moved);
   save(STORAGE.data, data);
   mount();
+  scheduleAutoBackup('move');
 }
 
 function cleanupGesture() {
@@ -1715,14 +2018,24 @@ function renderRecurringList() {
     return;
   }
   container.innerHTML = templates.map(tpl => `
-    <div class="recur-template" data-tpl-id="${tpl.id}">
+    <div class="recur-template" data-tpl-id="${tpl.id}" data-repeat-mode="${templateRepeatMode(tpl)}">
       <div class="recur-template-header">
         <input type="text" data-action="recur-text" value="${escapeHtml(tpl.text)}" placeholder="Task text...">
         <button class="recur-delete" data-action="recur-delete" title="Delete">${ICON_TRASH}</button>
       </div>
-      <div class="day-chips">
+      <div class="recur-mode">
+        ${[
+          ['weekly', 'Weekly'],
+          ['daily', 'Daily'],
+          ['monthly', 'Monthly'],
+          ['interval', 'Every X'],
+        ].map(([mode, label]) => `
+          <button class="${templateRepeatMode(tpl) === mode ? 'on' : ''}" data-action="recur-mode" data-repeat-mode="${mode}">${label}</button>
+        `).join('')}
+      </div>
+      <div class="day-chips" data-mode-field="weekly">
         ${[1,2,3,4,5,6,0].map(idx => `
-          <button class="day-chip ${tpl.days.includes(idx) ? 'on' : ''}" data-action="recur-day" data-day-idx="${idx}">${DAYS_LETTER[idx]}</button>
+          <button class="day-chip ${(tpl.days || []).includes(idx) ? 'on' : ''}" data-action="recur-day" data-day-idx="${idx}">${DAYS_LETTER[idx]}</button>
         `).join('')}
       </div>
       <div class="recur-options">
@@ -1731,6 +2044,15 @@ function renderRecurringList() {
         </label>
         <label>Notify
           <input type="time" data-action="recur-reminder" value="${toTimeInputValue(tpl.reminderTime)}">
+        </label>
+        <label data-mode-field="interval">Start
+          <input type="date" data-action="recur-start" value="${toDateInputValue(tpl.startDate) || dateKey(today)}">
+        </label>
+        <label data-mode-field="interval">Every days
+          <input type="number" min="1" max="365" step="1" inputmode="numeric" data-action="recur-interval" value="${clampNumber(tpl.intervalDays || 2, 1, 365)}">
+        </label>
+        <label data-mode-field="monthly">Day
+          <input type="number" min="1" max="31" step="1" inputmode="numeric" data-action="recur-month-day" value="${clampNumber(tpl.monthDay || today.getDate(), 1, 31)}">
         </label>
       </div>
     </div>
@@ -1757,11 +2079,25 @@ function renderRecurringList() {
     el.querySelector('[data-action="recur-delete"]').addEventListener('click', () => {
       deleteTemplate(tplId);
     });
+    el.querySelectorAll('[data-action="recur-mode"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tpl = templates.find(t => t.id === tplId);
+        if (!tpl) return;
+        tpl.repeatMode = btn.dataset.repeatMode;
+        if (!tpl.days || !tpl.days.length) tpl.days = [today.getDay()];
+        if (!tpl.startDate) tpl.startDate = dateKey(today);
+        if (!tpl.monthDay) tpl.monthDay = today.getDate();
+        if (!tpl.intervalDays) tpl.intervalDays = 2;
+        save(STORAGE.templates, templates);
+        syncTemplateFuture(tplId);
+      });
+    });
     el.querySelectorAll('[data-action="recur-day"]').forEach(chip => {
       chip.addEventListener('click', () => {
         const idx = Number(chip.dataset.dayIdx);
         const tpl = templates.find(t => t.id === tplId);
         if (!tpl) return;
+        if (!Array.isArray(tpl.days)) tpl.days = [];
         if (tpl.days.includes(idx)) tpl.days = tpl.days.filter(x => x !== idx);
         else tpl.days = [...tpl.days, idx].sort((a,b)=>a-b);
         chip.classList.toggle('on');
@@ -1785,6 +2121,30 @@ function renderRecurringList() {
       save(STORAGE.templates, templates);
       syncTemplateFuture(tplId);
     });
+    const startInput = el.querySelector('[data-action="recur-start"]');
+    startInput.addEventListener('change', () => {
+      const tpl = templates.find(t => t.id === tplId);
+      if (!tpl) return;
+      tpl.startDate = startInput.value;
+      save(STORAGE.templates, templates);
+      syncTemplateFuture(tplId);
+    });
+    const intervalInput = el.querySelector('[data-action="recur-interval"]');
+    intervalInput.addEventListener('change', () => {
+      const tpl = templates.find(t => t.id === tplId);
+      if (!tpl) return;
+      tpl.intervalDays = clampNumber(intervalInput.value, 1, 365);
+      save(STORAGE.templates, templates);
+      syncTemplateFuture(tplId);
+    });
+    const monthDayInput = el.querySelector('[data-action="recur-month-day"]');
+    monthDayInput.addEventListener('change', () => {
+      const tpl = templates.find(t => t.id === tplId);
+      if (!tpl) return;
+      tpl.monthDay = clampNumber(monthDayInput.value, 1, 31);
+      save(STORAGE.templates, templates);
+      syncTemplateFuture(tplId);
+    });
   });
 }
 
@@ -1800,6 +2160,7 @@ function syncTemplateFuture(tplId) {
   materializeRecurring();
   renderRecurringList();
   mount();
+  scheduleAutoBackup('template');
 }
 
 function deleteTemplate(id) {
@@ -1816,10 +2177,11 @@ function deleteTemplate(id) {
   save(STORAGE.data, data);
   renderRecurringList();
   mount();
+  scheduleAutoBackup('template-delete');
 }
 
 function addTemplate() {
-  const tpl = { id: uid(), text: 'New repeating task', days: [1,2,3,4,5], note: '', endDate: '', reminderTime: '' };
+  const tpl = { id: uid(), text: 'New repeating task', repeatMode: 'weekly', days: [1,2,3,4,5], note: '', endDate: '', reminderTime: '', startDate: dateKey(today), intervalDays: 2, monthDay: today.getDate() };
   templates.push(tpl);
   save(STORAGE.templates, templates);
   renderRecurringList();
@@ -1830,6 +2192,7 @@ function addTemplate() {
   }, 50);
   materializeRecurring();
   mount();
+  scheduleAutoBackup('template-add');
 }
 
 function openSettings() {
@@ -1838,6 +2201,7 @@ function openSettings() {
   renderNotificationsSwitch();
   renderLeftoversSwitch();
   renderRecurringList();
+  renderBackupMeta();
   panel.classList.add('open');
   backdrop.classList.add('open');
 }
@@ -1881,6 +2245,91 @@ document.getElementById('leftovers-toggle').addEventListener('click', () => {
   mount();
 });
 document.getElementById('recur-add').addEventListener('click', addTemplate);
+
+/* ====================== Backups ====================== */
+let autoBackupTimer = null;
+
+function backupLabel(iso) {
+  if (!iso) return 'No local backup yet';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return 'No local backup yet';
+  return `Last local backup: ${MONTHS_EN[d.getMonth()]} ${d.getDate()} · ${formatTime(d)}`;
+}
+
+function renderBackupMeta() {
+  const el = document.getElementById('backup-meta');
+  if (!el) return;
+  el.textContent = backupLabel(backups[0]?.exportedAt);
+}
+
+function createLocalBackup(reason = 'auto', force = false) {
+  const last = backups[0];
+  const now = Date.now();
+  if (!force && last?.exportedAt && now - new Date(last.exportedAt).getTime() < 5 * 60000) return;
+  backups = [appSnapshot(reason), ...backups].slice(0, 8);
+  save(STORAGE.backups, backups);
+  renderBackupMeta();
+}
+
+function scheduleAutoBackup(reason = 'auto') {
+  clearTimeout(autoBackupTimer);
+  autoBackupTimer = setTimeout(() => createLocalBackup(reason), 1200);
+}
+
+function downloadBackup(snapshot = appSnapshot('manual')) {
+  const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `daily-tasks-backup-${dateKey(new Date())}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function copyBackup() {
+  const text = JSON.stringify(appSnapshot('clipboard'), null, 2);
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('Backup copied');
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast(ok ? 'Backup copied' : 'Copy unavailable');
+  }
+}
+
+function applyImportedBackup(obj) {
+  if (!obj || typeof obj !== 'object') throw new Error('Invalid format');
+  createLocalBackup('pre-import', true);
+  if (obj.data && typeof obj.data === 'object')      { data = obj.data; save(STORAGE.data, data); }
+  if (Array.isArray(obj.inbox))                      { inbox = obj.inbox; save(STORAGE.inbox, inbox); }
+  if (Array.isArray(obj.templates))                  { templates = obj.templates; save(STORAGE.templates, templates); }
+  if (obj.dismissed && typeof obj.dismissed === 'object') { dismissed = obj.dismissed; save(STORAGE.dismissed, dismissed); }
+  if (obj.settings && typeof obj.settings === 'object') {
+    settings = Object.assign({ visibleDays: [0,1,2,3,4,5,6], showLeftovers: true, theme: 'dark', notifications: false }, obj.settings);
+    saveSettings();
+  }
+  createLocalBackup('imported', true);
+}
+
+function refreshSettingsPanel() {
+  if (!panel.classList.contains('open')) return;
+  renderDayToggles();
+  renderThemeSwitch();
+  renderNotificationsSwitch();
+  renderLeftoversSwitch();
+  renderRecurringList();
+  renderBackupMeta();
+}
 
 /* ====================== Reminder notifications ====================== */
 let reminderTimer = null;
@@ -1945,21 +2394,22 @@ function scheduleReminderCheck() {
 
 /* ====================== Export / Import ====================== */
 document.getElementById('export-json').addEventListener('click', () => {
-  const payload = {
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    data, templates, settings,
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `daily-tasks-backup-${dateKey(new Date())}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  createLocalBackup('manual-download', true);
+  downloadBackup(backups[0]);
   showToast('Backup downloaded');
+});
+document.getElementById('copy-backup').addEventListener('click', copyBackup);
+document.getElementById('restore-latest').addEventListener('click', () => {
+  const latest = backups[0];
+  if (!latest) {
+    showToast('No local backup yet');
+    return;
+  }
+  if (!confirm('This will replace current tasks with your latest local backup. Continue?')) return;
+  applyImportedBackup(latest);
+  mount();
+  refreshSettingsPanel();
+  showToast('Backup restored');
 });
 document.getElementById('import-json').addEventListener('click', () => {
   document.getElementById('import-input').click();
@@ -1970,21 +2420,13 @@ document.getElementById('import-input').addEventListener('change', async (e) => 
   try {
     const text = await file.text();
     const obj = JSON.parse(text);
-    if (!obj || typeof obj !== 'object') throw new Error('Invalid format');
     if (!confirm('This will replace all your current tasks. Continue?')) {
       e.target.value = '';
       return;
     }
-    if (obj.data && typeof obj.data === 'object')      { data = obj.data; save(STORAGE.data, data); }
-    if (Array.isArray(obj.templates))                  { templates = obj.templates; save(STORAGE.templates, templates); }
-    if (obj.settings && typeof obj.settings === 'object') {
-      settings = Object.assign({ visibleDays: [0,1,2,3,4,5,6], showLeftovers: true, theme: 'dark', notifications: false }, obj.settings);
-      saveSettings();
-    }
+    applyImportedBackup(obj);
     mount();
-    if (panel.classList.contains('open')) {
-      renderDayToggles(); renderThemeSwitch(); renderNotificationsSwitch(); renderLeftoversSwitch(); renderRecurringList();
-    }
+    refreshSettingsPanel();
     showToast('Backup imported');
   } catch (err) {
     alert('Failed to import: ' + err.message);
@@ -2029,6 +2471,8 @@ if (!Object.keys(data).length && !templates.length) {
 
 mount();
 scheduleReminderCheck();
+createLocalBackup('startup');
+setInterval(() => createLocalBackup('interval'), 6 * 60 * 60000);
 </script>
 </body>
 </html>

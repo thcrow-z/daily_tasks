@@ -1,7 +1,7 @@
 /* Daily Tasks - Service Worker
  * Network-first HTML, cache-first static shell. Bump CACHE_VERSION when shipping changes. */
 
-const CACHE_VERSION = 'daily-tasks-v7';
+const CACHE_VERSION = 'daily-tasks-v8';
 const APP_SHELL = [
   './',
   './index.html',
