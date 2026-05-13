@@ -34,13 +34,12 @@
   --input-bg: rgba(255,255,255,0.04);
   --input-bg-focus: rgba(255,255,255,0.08);
   --day-tone-1: #1A1A1C;
-  --day-tone-2: #1F1F21;
+  --day-tone-2: #1E1E20;
   --day-tone-3: #232325;
   --day-tone-4: #27272A;
   --day-tone-5: #2B2B2E;
-  --day-tone-6: #2F2F32;
-  --day-tone-7: #333336;
-  --day-tone-8: #1A1A1C;
+  --day-tone-6: #242427;
+  --day-tone-7: #1F1F22;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -78,13 +77,12 @@ body[data-theme="light"] {
   --input-bg: rgba(52,52,54,0.06);
   --input-bg-focus: rgba(52,52,54,0.1);
   --day-tone-1: #F7F3EC;
-  --day-tone-2: #F1EDE6;
-  --day-tone-3: #EBE7E0;
-  --day-tone-4: #E5E1DA;
-  --day-tone-5: #DFDBD4;
-  --day-tone-6: #D9D5CE;
-  --day-tone-7: #D3CFC8;
-  --day-tone-8: #F7F3EC;
+  --day-tone-2: #F0ECE5;
+  --day-tone-3: #EAE6DF;
+  --day-tone-4: #E4E0D9;
+  --day-tone-5: #DED9D2;
+  --day-tone-6: #E7E3DC;
+  --day-tone-7: #F0ECE5;
 }
 body {
   position: relative;
@@ -97,8 +95,9 @@ body {
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   padding-top: max(72px, calc(var(--sa-top) + 64px));
-  padding-bottom: max(40px, calc(var(--sa-bottom) + 24px));
+  padding-bottom: max(110px, calc(var(--sa-bottom) + 96px));
 }
+.app-scroll.scroll-lock { overflow: hidden; }
 
 /* ------------ Grain ------------ */
 .grain-overlay {
@@ -172,10 +171,8 @@ html { scroll-behavior: smooth; }
 
 /* ------------ Day blocks ------------ */
 .inbox {
-  --day-bg-from: var(--day-tone-1);
-  --day-bg-to:   var(--day-tone-2);
-  --day-bg:      var(--day-tone-1);
-  background: linear-gradient(180deg, var(--day-bg-from) 0%, var(--day-bg-to) 100%);
+  --day-bg: var(--day-tone-1);
+  background: var(--day-bg);
   margin: 0 calc(-1 * max(20px, var(--sa-left))) 0 calc(-1 * max(20px, var(--sa-right)));
   padding: 20px max(20px, var(--sa-left)) 22px max(20px, var(--sa-right));
 }
@@ -261,22 +258,20 @@ html { scroll-behavior: smooth; }
 }
 
 .day {
-  --day-bg-from: var(--day-tone-2);
-  --day-bg-to:   var(--day-tone-3);
-  --day-bg:      var(--day-tone-2);
-  background: linear-gradient(180deg, var(--day-bg-from) 0%, var(--day-bg-to) 100%);
+  --day-bg: var(--day-tone-2);
+  background: var(--day-bg);
   margin: 0 calc(-1 * max(20px, var(--sa-left))) 0 calc(-1 * max(20px, var(--sa-right)));
   padding: 0 max(20px, var(--sa-left)) 0 max(20px, var(--sa-right));
-  transition: box-shadow 0.2s var(--ease-out);
+  transition: background 0.3s var(--ease-out), box-shadow 0.2s var(--ease-out);
 }
-/* Continuous tonal flow: each section starts where the previous ended */
-.day:nth-child(7n+2) { --day-bg-from: var(--day-tone-2); --day-bg-to: var(--day-tone-3); --day-bg: var(--day-tone-2); }
-.day:nth-child(7n+3) { --day-bg-from: var(--day-tone-3); --day-bg-to: var(--day-tone-4); --day-bg: var(--day-tone-3); }
-.day:nth-child(7n+4) { --day-bg-from: var(--day-tone-4); --day-bg-to: var(--day-tone-5); --day-bg: var(--day-tone-4); }
-.day:nth-child(7n+5) { --day-bg-from: var(--day-tone-5); --day-bg-to: var(--day-tone-6); --day-bg: var(--day-tone-5); }
-.day:nth-child(7n+6) { --day-bg-from: var(--day-tone-6); --day-bg-to: var(--day-tone-7); --day-bg: var(--day-tone-6); }
-.day:nth-child(7n+7) { --day-bg-from: var(--day-tone-7); --day-bg-to: var(--day-tone-8); --day-bg: var(--day-tone-7); }
-.day:nth-child(7n+1) { --day-bg-from: var(--day-tone-1); --day-bg-to: var(--day-tone-2); --day-bg: var(--day-tone-1); }
+/* Flat per-day tones — starting after the inbox (child 2) */
+.day:nth-child(7n+2) { --day-bg: var(--day-tone-2); }
+.day:nth-child(7n+3) { --day-bg: var(--day-tone-3); }
+.day:nth-child(7n+4) { --day-bg: var(--day-tone-4); }
+.day:nth-child(7n+5) { --day-bg: var(--day-tone-5); }
+.day:nth-child(7n+6) { --day-bg: var(--day-tone-6); }
+.day:nth-child(7n+7) { --day-bg: var(--day-tone-7); }
+.day:nth-child(7n+1) { --day-bg: var(--day-tone-1); }
 .day.drag-target {
   box-shadow: inset 4px 0 0 var(--accent), inset 0 0 0 999px rgba(255,106,61,0.06);
 }
@@ -965,11 +960,56 @@ body[data-theme="light"] .segmented button.on {
 
 /* Settings footer (export/import + presets) */
 .settings-footer {
-  padding: 14px 24px max(22px, calc(var(--sa-bottom) + 14px));
+  padding: 0 24px max(20px, calc(var(--sa-bottom) + 12px));
   border-top: 1px solid var(--divider);
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex; flex-direction: column;
   flex-shrink: 0;
   background: var(--panel-bg);
+}
+.settings-footer-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 14px 4px 12px;
+  cursor: pointer;
+  transition: color 0.2s var(--ease-out);
+}
+.settings-footer-toggle:hover { color: var(--text); }
+.settings-footer-toggle svg {
+  width: 18px; height: 18px;
+  flex-shrink: 0;
+  transition: transform 0.3s var(--ease-emph);
+}
+.settings-footer-toggle[aria-expanded="false"] svg { transform: rotate(180deg); }
+
+.settings-footer-collapsible {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.4s var(--ease-emph), opacity 0.3s var(--ease-out);
+  opacity: 1;
+}
+.settings-footer-collapsible > .settings-footer-content {
+  overflow: hidden;
+  min-height: 0;
+}
+.settings-footer[data-collapsed="true"] .settings-footer-collapsible {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.settings-footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 8px;
 }
 .settings-footer-row { display: flex; gap: 8px; }
 .backup-meta {
@@ -978,8 +1018,9 @@ body[data-theme="light"] .segmented button.on {
   font-weight: 600;
   text-align: center;
   min-height: 16px;
+  margin-top: 4px;
 }
-.settings-footer button {
+.settings-footer-content button {
   flex: 1;
   background: rgba(255,255,255,0.06);
   border: none;
@@ -992,8 +1033,169 @@ body[data-theme="light"] .segmented button.on {
   cursor: pointer;
   transition: background 0.2s var(--ease-out), transform 0.15s var(--ease-out);
 }
-.settings-footer button:hover { background: rgba(255,255,255,0.1); }
-.settings-footer button:active { transform: scale(0.97); }
+.settings-footer-content button:hover { background: rgba(255,255,255,0.1); }
+.settings-footer-content button:active { transform: scale(0.97); }
+body[data-theme="light"] .settings-footer-content button { background: rgba(0,0,0,0.05); }
+body[data-theme="light"] .settings-footer-content button:hover { background: rgba(0,0,0,0.08); }
+
+/* ------------ FAB (floating capture) ------------ */
+.fab {
+  position: fixed;
+  right: max(20px, calc(var(--sa-right) + 16px));
+  bottom: max(24px, calc(var(--sa-bottom) + 20px));
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: white;
+  display: grid; place-items: center;
+  cursor: pointer;
+  z-index: 80;
+  box-shadow:
+    0 12px 28px rgba(255, 106, 61, 0.42),
+    0 4px 10px rgba(0,0,0,0.32);
+  transition:
+    transform 0.25s var(--ease-spring),
+    box-shadow 0.25s var(--ease-out),
+    background 0.2s var(--ease-out);
+  will-change: transform;
+}
+.fab:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow:
+    0 16px 34px rgba(255, 106, 61, 0.5),
+    0 6px 14px rgba(0,0,0,0.34);
+}
+.fab:active { transform: scale(0.92); }
+.fab svg { width: 24px; height: 24px; }
+.fab.fab-hide {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20px) scale(0.7);
+  transition:
+    opacity 0.2s var(--ease-out),
+    transform 0.25s var(--ease-out);
+}
+
+/* ------------ Capture modal ------------ */
+.capture-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 110;
+  transition: opacity 0.25s var(--ease-out);
+}
+.capture-backdrop.open { opacity: 1; pointer-events: auto; }
+.capture-modal {
+  --kb-offset: 0px;
+  position: fixed;
+  left: 50%;
+  bottom: max(28px, calc(var(--sa-bottom) + 18px));
+  transform: translate(-50%, calc(20px - var(--kb-offset))) scale(0.96);
+  width: min(440px, calc(100vw - 32px));
+  background: var(--panel-bg);
+  border: 1px solid var(--divider);
+  border-radius: 20px;
+  padding: 18px 16px 16px;
+  z-index: 111;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow:
+    0 30px 70px rgba(0,0,0,0.5),
+    0 6px 14px rgba(0,0,0,0.28);
+  transition:
+    opacity 0.25s var(--ease-out),
+    transform 0.35s var(--ease-emph);
+}
+.capture-modal.open {
+  opacity: 1;
+  transform: translate(-50%, calc(0px - var(--kb-offset))) scale(1);
+  pointer-events: auto;
+}
+.capture-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+.capture-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-dim);
+}
+.capture-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.capture-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  padding: 14px 14px;
+  border-radius: 12px;
+  outline: none;
+  transition: background 0.2s var(--ease-out), border-color 0.2s var(--ease-out);
+}
+.capture-input:focus {
+  background: var(--input-bg-focus);
+  border-color: var(--accent-soft);
+}
+.capture-input::placeholder { color: var(--text-dim); }
+.capture-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.capture-actions button {
+  background: rgba(255,255,255,0.06);
+  border: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  min-width: 84px;
+  transition:
+    background 0.18s var(--ease-out),
+    transform 0.15s var(--ease-spring),
+    opacity 0.2s var(--ease-out);
+}
+.capture-actions button:hover { background: rgba(255,255,255,0.1); }
+.capture-actions button:active { transform: scale(0.96); }
+.capture-actions .capture-submit {
+  background: var(--accent);
+  color: white;
+}
+.capture-actions .capture-submit:hover { background: #ff7f57; }
+.capture-actions .capture-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: var(--accent);
+}
+body[data-theme="light"] .capture-actions button { background: rgba(0,0,0,0.05); }
+body[data-theme="light"] .capture-actions button:hover { background: rgba(0,0,0,0.08); }
+body[data-theme="light"] .capture-actions .capture-submit { background: var(--accent); color: white; }
+
+@media (max-width: 420px) {
+  .fab { width: 56px; height: 56px; right: max(18px, calc(var(--sa-right) + 14px)); bottom: max(22px, calc(var(--sa-bottom) + 18px)); }
+  .capture-modal { border-radius: 18px; padding: 16px 14px 14px; }
+  .capture-input { font-size: 16px; padding: 13px 12px; } /* keep 16px so iOS doesn't zoom */
+  .capture-actions button { padding: 12px 14px; font-size: 13px; }
+}
 
 /* Toast for ephemeral feedback */
 .toast {
@@ -1098,22 +1300,53 @@ body[data-theme="light"] .segmented button.on {
     <button class="recur-add-btn" id="recur-add">+ Add recurring task</button>
   </div>
 
-  <div class="settings-footer">
-    <div class="settings-footer-row">
-      <button id="show-all">Show all days</button>
-      <button id="weekdays-only">Weekdays only</button>
+  <div class="settings-footer" id="settings-footer" data-collapsed="true">
+    <button class="settings-footer-toggle" id="settings-footer-toggle" type="button" aria-expanded="false" aria-controls="settings-footer-content">
+      <span>Backup &amp; presets</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="6 15 12 9 18 15"/>
+      </svg>
+    </button>
+    <div class="settings-footer-collapsible">
+      <div class="settings-footer-content" id="settings-footer-content">
+        <div class="settings-footer-row">
+          <button id="show-all">Show all days</button>
+          <button id="weekdays-only">Weekdays only</button>
+        </div>
+        <div class="settings-footer-row">
+          <button id="export-json">Download backup</button>
+          <button id="copy-backup">Copy backup</button>
+        </div>
+        <div class="settings-footer-row">
+          <button id="import-json">Import JSON</button>
+          <button id="restore-latest">Restore latest</button>
+        </div>
+        <div class="backup-meta" id="backup-meta"></div>
+      </div>
     </div>
-    <div class="settings-footer-row">
-      <button id="export-json">Download backup</button>
-      <button id="copy-backup">Copy backup</button>
-    </div>
-    <div class="settings-footer-row">
-      <button id="import-json">Import JSON</button>
-      <button id="restore-latest">Restore latest</button>
-    </div>
-    <div class="backup-meta" id="backup-meta"></div>
   </div>
 </aside>
+
+<button class="fab" id="open-capture" aria-label="Add to inbox" title="Add to inbox">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <line x1="12" y1="5" x2="12" y2="19"/>
+    <line x1="5" y1="12" x2="19" y2="12"/>
+  </svg>
+</button>
+
+<div class="capture-backdrop" id="capture-backdrop"></div>
+<div class="capture-modal" id="capture-modal" role="dialog" aria-modal="true" aria-labelledby="capture-title">
+  <div class="capture-header">
+    <span class="capture-title" id="capture-title">New in inbox</span>
+  </div>
+  <form class="capture-form" id="capture-form">
+    <input class="capture-input" id="capture-input" type="text" autocomplete="off" enterkeyhint="done" inputmode="text" placeholder="What needs to be done?">
+    <div class="capture-actions">
+      <button type="button" id="capture-cancel">Cancel</button>
+      <button type="submit" class="capture-submit" id="capture-submit" disabled>Add</button>
+    </div>
+  </form>
+</div>
 
 <input type="file" id="import-input" accept="application/json,.json" hidden>
 <div class="toast" id="toast"></div>
@@ -2352,11 +2585,89 @@ function openSettings() {
   renderBackupMeta();
   panel.classList.add('open');
   backdrop.classList.add('open');
+  document.getElementById('open-capture')?.classList.add('fab-hide');
 }
 function closeSettings() {
   panel.classList.remove('open');
   backdrop.classList.remove('open');
+  if (!document.getElementById('capture-modal').classList.contains('open')) {
+    document.getElementById('open-capture')?.classList.remove('fab-hide');
+  }
 }
+
+/* ====================== FAB + Capture modal ====================== */
+const captureBackdrop = document.getElementById('capture-backdrop');
+const captureModal    = document.getElementById('capture-modal');
+const captureForm     = document.getElementById('capture-form');
+const captureInput    = document.getElementById('capture-input');
+const captureSubmit   = document.getElementById('capture-submit');
+const fabBtn          = document.getElementById('open-capture');
+
+const appScrollEl = document.getElementById('app-scroll');
+
+function syncCaptureViewport() {
+  if (!captureModal.classList.contains('open')) return;
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const overlap = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+  captureModal.style.setProperty('--kb-offset', overlap + 'px');
+}
+
+function openCapture() {
+  captureBackdrop.classList.add('open');
+  captureModal.classList.add('open');
+  fabBtn.classList.add('fab-hide');
+  appScrollEl?.classList.add('scroll-lock');
+  captureInput.value = '';
+  captureSubmit.disabled = true;
+  syncCaptureViewport();
+  window.visualViewport?.addEventListener('resize', syncCaptureViewport);
+  window.visualViewport?.addEventListener('scroll',  syncCaptureViewport);
+  // Wait one frame so the slide-in animation can play, then focus.
+  requestAnimationFrame(() => {
+    setTimeout(() => captureInput.focus({ preventScroll: true }), 60);
+  });
+}
+function closeCapture() {
+  captureBackdrop.classList.remove('open');
+  captureModal.classList.remove('open');
+  fabBtn.classList.remove('fab-hide');
+  appScrollEl?.classList.remove('scroll-lock');
+  captureInput.blur();
+  captureModal.style.removeProperty('--kb-offset');
+  window.visualViewport?.removeEventListener('resize', syncCaptureViewport);
+  window.visualViewport?.removeEventListener('scroll',  syncCaptureViewport);
+}
+function submitCapture() {
+  const txt = captureInput.value.trim();
+  if (!txt) return;
+  addInboxTask(txt);
+  closeCapture();
+  showToast('Added to inbox');
+}
+
+fabBtn.addEventListener('click', openCapture);
+captureBackdrop.addEventListener('click', closeCapture);
+document.getElementById('capture-cancel').addEventListener('click', closeCapture);
+captureInput.addEventListener('input', () => {
+  captureSubmit.disabled = !captureInput.value.trim();
+});
+captureForm.addEventListener('submit', e => {
+  e.preventDefault();
+  submitCapture();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && captureModal.classList.contains('open')) closeCapture();
+});
+
+/* Collapsible footer (backup/import/presets) */
+const settingsFooter = document.getElementById('settings-footer');
+const settingsFooterToggle = document.getElementById('settings-footer-toggle');
+settingsFooterToggle.addEventListener('click', () => {
+  const collapsed = settingsFooter.dataset.collapsed === 'true';
+  settingsFooter.dataset.collapsed = collapsed ? 'false' : 'true';
+  settingsFooterToggle.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+});
 
 document.getElementById('open-settings').addEventListener('click', openSettings);
 document.getElementById('close-settings').addEventListener('click', closeSettings);
