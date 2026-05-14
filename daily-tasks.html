@@ -28,8 +28,12 @@
   --text: #F2F2F4;
   --text-dim: #8E8E93;
   --divider: rgba(255,255,255,0.08);
-  --accent: #FF6A3D;
-  --accent-soft: rgba(255, 106, 61, 0.18);
+  --accent: #E8EDF2;
+  --accent-soft: rgba(232, 237, 242, 0.18);
+  --accent-tint: rgba(232, 237, 242, 0.08);
+  --accent-glow: rgba(232, 237, 242, 0.34);
+  --accent-hover: #F5F8FB;
+  --accent-contrast: #16181C;
   --success: #34C759;
   --success-soft: rgba(52, 199, 89, 0.18);
   --warning: #FFB340;
@@ -56,6 +60,7 @@
   --date-primary: rgba(242,242,244,0.96);
   --date-secondary: rgba(142,142,147,0.86);
   --date-ghost: rgba(142,142,147,0.22);
+  --topbar-bg: rgba(26,26,28,0.78);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -67,6 +72,14 @@
   --page-pad: 18px;
   --touch: 44px;
   --date-hero-h: 50vh;
+  --date-hero-open-h: max(390px, var(--date-hero-h));
+  --date-hero-collapsed-h: max(76px, calc(var(--sa-top) + 62px));
+  --date-scroll-top: var(--date-hero-open-h);
+  --date-collapse-progress: 0;
+  --date-main-x: 0px;
+  --date-main-y: 0px;
+  --date-main-scale: 1;
+  --date-weekday-y: 0px;
   --float-right: max(20px, calc(var(--sa-right) + 16px), calc((100vw - 560px) / 2 + 16px));
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -87,8 +100,12 @@ body[data-theme="light"] {
   --text: #343436;
   --text-dim: #858078;
   --divider: rgba(35,35,37,0.08);
-  --accent: #E9653D;
-  --accent-soft: rgba(233, 101, 61, 0.16);
+  --accent: #E8EDF2;
+  --accent-soft: rgba(22, 24, 28, 0.1);
+  --accent-tint: rgba(22, 24, 28, 0.05);
+  --accent-glow: rgba(128, 143, 158, 0.22);
+  --accent-hover: #DCE4EC;
+  --accent-contrast: #1B1D21;
   --success: #2F9D55;
   --success-soft: rgba(47, 157, 85, 0.14);
   --warning: #B87918;
@@ -115,13 +132,17 @@ body[data-theme="light"] {
   --date-primary: rgba(52,52,54,0.94);
   --date-secondary: rgba(133,128,120,0.9);
   --date-ghost: rgba(133,128,120,0.24);
+  --topbar-bg: rgba(247,243,236,0.86);
 }
 body {
   position: relative;
 }
 .app-scroll {
   position: fixed;
-  inset: max(390px, var(--date-hero-h)) 0 0 0;
+  top: var(--date-scroll-top);
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 1;
   overflow-x: hidden;
   overflow-y: auto;
@@ -164,7 +185,7 @@ body {
   z-index: 2;
   width: 100%;
   max-width: 560px;
-  height: max(390px, var(--date-hero-h));
+  height: var(--date-hero-open-h);
   transform: translateX(-50%);
   padding:
     max(48px, calc(var(--sa-top) + 42px))
@@ -179,11 +200,66 @@ body {
   color: var(--text);
   font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, system-ui, sans-serif;
   font-optical-sizing: auto;
+  overflow: hidden;
+  will-change: height;
+}
+.date-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: max(var(--page-pad), var(--sa-left));
+  right: max(var(--page-pad), var(--sa-right));
+  height: var(--date-hero-collapsed-h);
+  border-bottom: 1px solid var(--divider);
+  background: var(--topbar-bg);
+  opacity: var(--date-collapse-progress);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  z-index: -1;
+}
+.date-hero-topbar {
+  position: absolute;
+  top: 0;
+  left: max(var(--page-pad), var(--sa-left));
+  right: max(var(--page-pad), var(--sa-right));
+  height: var(--date-hero-collapsed-h);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: var(--date-collapse-progress);
+  transform: translateY(calc((1 - var(--date-collapse-progress)) * -10px));
+  will-change: opacity, transform;
+}
+.date-topbar-day {
+  color: var(--date-primary);
+  font-size: 29px;
+  font-weight: 760;
+  line-height: 1;
+}
+.date-topbar-month,
+.date-topbar-year,
+.date-topbar-weekday {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 820;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.date-topbar-year,
+.date-topbar-weekday {
+  color: var(--date-secondary);
+}
+.date-topbar-weekday {
+  margin-left: auto;
 }
 .date-hero-main {
   min-width: 0;
   display: grid;
   justify-items: start;
+  opacity: calc(1 - var(--date-collapse-progress));
+  transform: translate(var(--date-main-x), var(--date-main-y)) scale(var(--date-main-scale));
+  transform-origin: left bottom;
+  will-change: opacity, transform;
 }
 .date-hero-day {
   font-size: 196px;
@@ -204,6 +280,7 @@ body {
   font-size: 38px;
   line-height: 0.9;
   color: var(--text);
+  opacity: calc(1 - (var(--date-collapse-progress) * 0.1));
 }
 .date-hero-year {
   margin-top: 2px;
@@ -211,6 +288,7 @@ body {
   font-weight: 440;
   line-height: 0.9;
   color: var(--date-secondary);
+  opacity: calc(1 - (var(--date-collapse-progress) * 0.55));
 }
 .date-hero-weekday {
   padding: 0 6px 1px 18px;
@@ -218,6 +296,12 @@ body {
   font-size: 40px;
   font-weight: 360;
   line-height: 1;
+  opacity: calc(1 - var(--date-collapse-progress));
+  transform:
+    translateY(var(--date-weekday-y))
+    scale(calc(1 - (var(--date-collapse-progress) * 0.25)));
+  transform-origin: right bottom;
+  will-change: transform, opacity;
 }
 
 .app {
@@ -362,7 +446,7 @@ html { scroll-behavior: smooth; }
 .day:nth-child(7n+7) { --day-bg: var(--day-tone-7); }
 .day:nth-child(7n+1) { --day-bg: var(--day-tone-1); }
 .day.drag-target {
-  box-shadow: inset 4px 0 0 var(--accent), inset 0 0 0 999px rgba(255,106,61,0.06);
+  box-shadow: inset 4px 0 0 var(--accent), inset 0 0 0 999px var(--accent-tint);
 }
 .day-header {
   display: grid;
@@ -550,7 +634,7 @@ html { scroll-behavior: smooth; }
 }
 .leftover-actions .leftover-move { background: var(--accent-soft); color: var(--accent); }
 .leftover-actions button:hover { background: rgba(255,255,255,0.12); }
-.leftover-actions .leftover-move:hover { background: rgba(255,106,61,0.3); }
+.leftover-actions .leftover-move:hover { background: var(--accent-soft); }
 .leftover-actions button:active { transform: scale(0.94); }
 
 @media (max-width: 420px) {
@@ -690,7 +774,7 @@ html { scroll-behavior: smooth; }
 }
 .checkbox svg {
   width: 12px; height: 12px;
-  stroke: white; stroke-width: 2.5; fill: none;
+  stroke: var(--accent-contrast); stroke-width: 2.5; fill: none;
   stroke-linecap: round; stroke-linejoin: round;
   stroke-dasharray: 14; stroke-dashoffset: 14;
   transition: stroke-dashoffset 0.3s var(--ease-out) 0.05s;
@@ -1456,7 +1540,7 @@ body[data-theme="light"] .segmented button.on {
 .day-chip:active { transform: scale(0.92); }
 .day-chip.on {
   background: var(--accent);
-  color: white;
+  color: var(--accent-contrast);
 }
 
 .recur-options {
@@ -1508,7 +1592,7 @@ body[data-theme="light"] .segmented button.on {
 }
 .recur-mode button.on {
   background: var(--accent);
-  color: white;
+  color: var(--accent-contrast);
 }
 .recur-preview {
   display: flex;
@@ -1742,7 +1826,7 @@ body[data-theme="light"] .settings-footer-content button:hover { background: rgb
   justify-content: center;
   justify-self: end;
   background: var(--accent);
-  color: white;
+  color: var(--accent-contrast);
   font-size: 11px;
   font-weight: 900;
 }
@@ -1761,9 +1845,9 @@ body[data-theme="light"] .settings-footer-content button:hover { background: rgb
   will-change: transform;
   bottom: max(24px, calc(var(--sa-bottom) + 20px));
   background: var(--accent);
-  color: white;
+  color: var(--accent-contrast);
   box-shadow:
-    0 12px 28px rgba(255, 106, 61, 0.42),
+    0 12px 28px var(--accent-glow),
     0 4px 10px rgba(0,0,0,0.32);
   transition:
     transform 0.25s var(--ease-spring),
@@ -1774,7 +1858,7 @@ body[data-theme="light"] .settings-footer-content button:hover { background: rgb
 .fab:hover {
   transform: translateY(-2px) scale(1.04);
   box-shadow:
-    0 16px 34px rgba(255, 106, 61, 0.5),
+    0 16px 34px var(--accent-glow),
     0 6px 14px rgba(0,0,0,0.34);
 }
 .fab:active { transform: scale(0.92); }
@@ -1869,7 +1953,7 @@ body[data-theme="light"] .settings-footer-content button:hover { background: rgb
 }
 .install-prompt .install-confirm {
   background: var(--accent);
-  color: white;
+  color: var(--accent-contrast);
 }
 
 /* ------------ Capture modal ------------ */
@@ -1972,9 +2056,9 @@ body[data-theme="light"] .settings-footer-content button:hover { background: rgb
 .capture-actions button:active { transform: scale(0.96); }
 .capture-actions .capture-submit {
   background: var(--accent);
-  color: white;
+  color: var(--accent-contrast);
 }
-.capture-actions .capture-submit:hover { background: #ff7f57; }
+.capture-actions .capture-submit:hover { background: var(--accent-hover); }
 .capture-actions .capture-submit:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -1982,7 +2066,7 @@ body[data-theme="light"] .settings-footer-content button:hover { background: rgb
 }
 body[data-theme="light"] .capture-actions button { background: rgba(0,0,0,0.05); }
 body[data-theme="light"] .capture-actions button:hover { background: rgba(0,0,0,0.08); }
-body[data-theme="light"] .capture-actions .capture-submit { background: var(--accent); color: white; }
+body[data-theme="light"] .capture-actions .capture-submit { background: var(--accent); color: var(--accent-contrast); }
 
 /* ------------ Dates pop-up ------------ */
 .meta-backdrop {
@@ -2104,7 +2188,7 @@ body[data-theme="light"] .capture-actions .capture-submit { background: var(--ac
 }
 .meta-actions .meta-save {
   background: var(--accent);
-  color: white;
+  color: var(--accent-contrast);
 }
 
 @media (max-width: 420px) {
@@ -2193,6 +2277,12 @@ body[data-theme="light"] .capture-actions .capture-submit { background: var(--ac
 </svg>
 
 <section class="date-hero" id="date-hero" aria-label="Current date">
+  <div class="date-hero-topbar" aria-hidden="true">
+    <span class="date-topbar-day" id="date-topbar-day"></span>
+    <span class="date-topbar-month" id="date-topbar-month"></span>
+    <span class="date-topbar-year" id="date-topbar-year"></span>
+    <span class="date-topbar-weekday" id="date-topbar-weekday"></span>
+  </div>
   <div class="date-hero-main">
     <div class="date-hero-day" id="date-hero-day"></div>
     <div class="date-hero-month" id="date-hero-month"></div>
@@ -2863,11 +2953,54 @@ function syncDateHero() {
   const monthEl = document.getElementById('date-hero-month');
   const yearEl = document.getElementById('date-hero-year');
   const weekdayEl = document.getElementById('date-hero-weekday');
-  if (!dayEl || !monthEl || !yearEl || !weekdayEl) return;
-  dayEl.textContent = String(today.getDate());
-  monthEl.textContent = MONTHS_EN[today.getMonth()].slice(0, 3);
-  yearEl.textContent = String(today.getFullYear());
-  weekdayEl.textContent = DAYS_SHORT[today.getDay()];
+  const topbarDayEl = document.getElementById('date-topbar-day');
+  const topbarMonthEl = document.getElementById('date-topbar-month');
+  const topbarYearEl = document.getElementById('date-topbar-year');
+  const topbarWeekdayEl = document.getElementById('date-topbar-weekday');
+  if (!dayEl || !monthEl || !yearEl || !weekdayEl || !topbarDayEl || !topbarMonthEl || !topbarYearEl || !topbarWeekdayEl) return;
+  const day = String(today.getDate());
+  const month = MONTHS_EN[today.getMonth()].slice(0, 3);
+  const year = String(today.getFullYear());
+  const weekday = DAYS_SHORT[today.getDay()];
+  dayEl.textContent = day;
+  monthEl.textContent = month;
+  yearEl.textContent = year;
+  weekdayEl.textContent = weekday;
+  topbarDayEl.textContent = day;
+  topbarMonthEl.textContent = month;
+  topbarYearEl.textContent = year;
+  topbarWeekdayEl.textContent = weekday;
+}
+
+let dateHeroFrame = 0;
+function updateDateHeroCollapse() {
+  if (dateHeroFrame) return;
+  dateHeroFrame = requestAnimationFrame(() => {
+    dateHeroFrame = 0;
+    const root = document.documentElement;
+    const hero = document.getElementById('date-hero');
+    const scrollEl = document.getElementById('app-scroll');
+    if (!hero || !scrollEl) return;
+
+    const heroStyle = getComputedStyle(hero);
+    const openHeight = hero.getBoundingClientRect().height || Math.max(390, window.innerHeight * 0.5);
+    const paddingTop = parseFloat(heroStyle.paddingTop) || 48;
+    const paddingBottom = parseFloat(heroStyle.paddingBottom) || 58;
+    const collapsedHeight = Math.max(76, paddingTop + 28);
+    const collapseDistance = Math.max(140, Math.min(260, openHeight - collapsedHeight));
+    const progress = Math.min(1, Math.max(0, scrollEl.scrollTop / collapseDistance));
+    const scrollTop = openHeight - ((openHeight - collapsedHeight) * progress);
+    const compactBottom = collapsedHeight - 12;
+    const mainY = ((compactBottom) - (openHeight - paddingBottom)) * progress;
+    const scale = 1 - (progress * 0.68);
+
+    root.style.setProperty('--date-collapse-progress', progress.toFixed(3));
+    root.style.setProperty('--date-scroll-top', `${scrollTop.toFixed(2)}px`);
+    root.style.setProperty('--date-main-x', `${(progress * 4).toFixed(2)}px`);
+    root.style.setProperty('--date-main-y', `${mainY.toFixed(2)}px`);
+    root.style.setProperty('--date-main-scale', scale.toFixed(3));
+    root.style.setProperty('--date-weekday-y', `${(mainY - (progress * 10)).toFixed(2)}px`);
+  });
 }
 
 function dayHTML(d) {
@@ -3074,6 +3207,7 @@ function mount() {
   bindAppEvents();
   syncActionMenuState();
   syncShellColors();
+  updateDateHeroCollapse();
 }
 
 /**
@@ -4525,6 +4659,12 @@ document.getElementById('install-dismiss')?.addEventListener('click', () => {
   renderInstallPrompt();
 });
 if (!navigator.onLine) showAppStatus('Offline mode · tasks keep working', 'offline', 4200);
+
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+if (appScrollEl) appScrollEl.scrollTop = 0;
+appScrollEl?.addEventListener('scroll', updateDateHeroCollapse, { passive: true });
+window.addEventListener('resize', updateDateHeroCollapse);
+window.visualViewport?.addEventListener('resize', updateDateHeroCollapse);
 
 /* ====================== Service worker ====================== */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
