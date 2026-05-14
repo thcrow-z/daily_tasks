@@ -56,6 +56,8 @@
   --sa-left: env(safe-area-inset-left, 0px);
   --page-pad: 18px;
   --touch: 44px;
+  --date-hero-h: 50vh;
+  --float-right: max(20px, calc(var(--sa-right) + 16px), calc((100vw - 560px) / 2 + 16px));
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body {
@@ -102,14 +104,15 @@ body {
 }
 .app-scroll {
   position: fixed;
-  inset: 0;
+  inset: max(390px, var(--date-hero-h)) 0 0 0;
+  z-index: 1;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
-  padding-top: max(42px, calc(var(--sa-top) + 34px));
+  padding-top: 0;
   padding-bottom: 0;
-  background: var(--bg);
+  background: transparent;
 }
 .app-scroll.scroll-lock { overflow: hidden; }
 
@@ -136,6 +139,66 @@ body {
 }
 
 /* ------------ Layout ------------ */
+.date-hero {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: 2;
+  width: 100%;
+  max-width: 560px;
+  height: max(390px, var(--date-hero-h));
+  transform: translateX(-50%);
+  padding:
+    max(48px, calc(var(--sa-top) + 42px))
+    max(var(--page-pad), var(--sa-right))
+    clamp(50px, 8vh, 92px)
+    max(var(--page-pad), var(--sa-left));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: end;
+  align-items: end;
+  pointer-events: none;
+  color: var(--text);
+}
+.date-hero-main {
+  min-width: 0;
+  display: grid;
+  justify-items: start;
+}
+.date-hero-day {
+  font-size: 208px;
+  font-weight: 950;
+  line-height: 0.72;
+  letter-spacing: 0;
+  color: var(--text);
+}
+.date-hero-month,
+.date-hero-year {
+  display: block;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+.date-hero-month {
+  margin-top: 30px;
+  font-size: 54px;
+  line-height: 0.82;
+  color: var(--text);
+}
+.date-hero-year {
+  margin-top: 6px;
+  font-size: 54px;
+  line-height: 0.84;
+  color: var(--text-dim);
+}
+.date-hero-weekday {
+  padding: 0 6px 2px 18px;
+  color: rgba(142,142,147,0.22);
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1;
+}
+
 .app {
   width: 100%;
   max-width: 560px;
@@ -163,39 +226,6 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 html { scroll-behavior: smooth; }
-
-/* ------------ Floating menu ------------ */
-.menu-btn {
-  position: fixed;
-  top: max(18px, calc(var(--sa-top) + 14px));
-  right: max(18px, calc(var(--sa-right) + 14px));
-  z-index: 50;
-  width: 42px; height: 42px;
-  border-radius: 12px;
-  border: none;
-  background: var(--menu-bg);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  display: grid; place-items: center;
-  cursor: pointer;
-  color: var(--text);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-  transition:
-    background 0.25s var(--ease-out),
-    transform 0.2s var(--ease-spring),
-    box-shadow 0.25s var(--ease-out);
-}
-.menu-btn:hover {
-  background: var(--menu-bg-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 28px rgba(0,0,0,0.24);
-}
-.menu-btn:active { transform: scale(0.92); }
-.menu-btn svg {
-  width: 18px; height: 18px;
-  transition: transform 0.3s var(--ease-spring);
-}
-.menu-btn:hover svg { transform: rotate(90deg); }
 
 /* ------------ Day blocks ------------ */
 .inbox {
@@ -293,85 +323,6 @@ html { scroll-behavior: smooth; }
   font-size: 13px;
   font-style: italic;
   padding: 2px 0 0 32px;
-}
-
-/* ------------ View controls ------------ */
-.view-toolbar {
-  background: var(--day-tone-1);
-  margin: 0 calc(-1 * max(var(--page-pad), var(--sa-left))) 0 calc(-1 * max(var(--page-pad), var(--sa-right)));
-  padding: 10px max(var(--page-pad), var(--sa-left)) 14px max(var(--page-pad), var(--sa-right));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.view-tabs {
-  --view-index: 0;
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4px;
-  width: min(270px, 72vw);
-  padding: 4px;
-  border-radius: 12px;
-  background: var(--tone-sunken);
-}
-.view-tab-indicator {
-  position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: 4px;
-  width: calc((100% - 8px) / 3);
-  border-radius: 9px;
-  background: var(--accent);
-  transform: translateX(calc(var(--view-index) * 100%));
-  transition: transform 0.32s var(--ease-emph);
-  will-change: transform;
-}
-.view-tabs button,
-.range-toggle {
-  min-height: 36px;
-  border: none;
-  border-radius: 9px;
-  color: var(--text-dim);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 800;
-  background: transparent;
-  cursor: pointer;
-  position: relative;
-  z-index: 1;
-  transition: background 0.2s var(--ease-out), color 0.2s var(--ease-out), transform 0.15s var(--ease-out);
-}
-.view-tabs button.on { color: white; }
-.range-toggle.on { background: var(--accent); color: white; }
-.view-tabs button:active,
-.range-toggle:active {
-  transform: scale(0.96);
-}
-.range-toggle {
-  flex: 0 0 auto;
-  min-width: 76px;
-  padding: 0 12px;
-  background: var(--tone-raised);
-}
-
-@media (max-width: 380px) {
-  .view-toolbar {
-    gap: 8px;
-  }
-  .view-tabs {
-    width: auto;
-    flex: 1;
-  }
-  .view-tabs button,
-  .range-toggle {
-    font-size: 11px;
-  }
-  .range-toggle {
-    min-width: 66px;
-    padding: 0 10px;
-  }
 }
 
 .day {
@@ -637,7 +588,7 @@ html { scroll-behavior: smooth; }
 .task {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) auto;
-  align-items: start;
+  align-items: center;
   gap: 10px;
   min-height: 50px;
   padding: 9px 0;
@@ -682,7 +633,7 @@ html { scroll-behavior: smooth; }
   background: var(--accent);
   animation: check-pop 0.4s var(--ease-spring);
 }
-.task > .checkbox { margin-top: 2px; }
+.task > .checkbox { margin-top: 0; }
 @keyframes check-pop {
   0%   { transform: scale(0.85); }
   50%  { transform: scale(1.12); }
@@ -700,8 +651,7 @@ html { scroll-behavior: smooth; }
 .task-main {
   min-width: 0;
   display: grid;
-  gap: 4px;
-  padding-top: 1px;
+  gap: 3px;
 }
 .task-text {
   font-size: 16px;
@@ -816,6 +766,7 @@ html { scroll-behavior: smooth; }
   color: var(--text-dim);
   min-height: 13px;
 }
+.task-flags:empty { display: none; }
 
 .task-context {
   margin-left: 34px;
@@ -840,13 +791,6 @@ html { scroll-behavior: smooth; }
 
 @media (max-width: 420px) {
   .task-meta { grid-template-columns: 1fr; }
-  .view-toolbar {
-    align-items: stretch;
-  }
-  .view-tabs {
-    flex: 1;
-    width: auto;
-  }
   .agenda-view {
     padding-top: 20px;
   }
@@ -1504,11 +1448,108 @@ body[data-theme="light"] .segmented button.on {
 body[data-theme="light"] .settings-footer-content button { background: rgba(0,0,0,0.05); }
 body[data-theme="light"] .settings-footer-content button:hover { background: rgba(0,0,0,0.08); }
 
-/* ------------ FAB (floating capture) ------------ */
-.fab,
-.inbox-fab {
+/* ------------ FAB action menu ------------ */
+.fab-menu-backdrop {
   position: fixed;
-  right: max(20px, calc(var(--sa-right) + 16px));
+  inset: 0;
+  z-index: 70;
+  background: rgba(0,0,0,0.08);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s var(--ease-out);
+}
+.fab-menu-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.fab-menu {
+  position: fixed;
+  right: var(--float-right);
+  bottom: max(94px, calc(var(--sa-bottom) + 90px));
+  z-index: 81;
+  width: min(220px, calc(100vw - 40px - var(--sa-left) - var(--sa-right)));
+  padding: 8px;
+  border-radius: 18px;
+  background: var(--menu-bg);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: 0 18px 42px rgba(0,0,0,0.32);
+  display: grid;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(16px) scale(0.96);
+  transform-origin: bottom right;
+  transition:
+    opacity 0.2s var(--ease-out),
+    transform 0.24s var(--ease-spring);
+}
+.fab-menu.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+.fab-menu button {
+  min-height: 42px;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s var(--ease-out), color 0.18s var(--ease-out), transform 0.15s var(--ease-out);
+}
+.fab-menu button:hover { background: var(--menu-bg-hover); }
+.fab-menu button:active { transform: scale(0.97); }
+.fab-menu button.on {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.fab-menu svg {
+  width: 18px;
+  height: 18px;
+  justify-self: center;
+}
+.fab-menu-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fab-menu-divider {
+  height: 1px;
+  background: var(--divider);
+  margin: 4px 6px;
+}
+.inbox-badge {
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  padding: 0 6px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  background: var(--accent);
+  color: white;
+  font-size: 11px;
+  font-weight: 900;
+}
+.fab-menu button.has-items .inbox-badge {
+  display: inline-flex;
+}
+.fab {
+  position: fixed;
+  right: var(--float-right);
   width: 58px; height: 58px;
   border-radius: 50%;
   border: none;
@@ -1516,8 +1557,6 @@ body[data-theme="light"] .settings-footer-content button:hover { background: rgb
   cursor: pointer;
   z-index: 80;
   will-change: transform;
-}
-.fab {
   bottom: max(24px, calc(var(--sa-bottom) + 20px));
   background: var(--accent);
   color: white;
@@ -1529,6 +1568,7 @@ body[data-theme="light"] .settings-footer-content button:hover { background: rgb
     box-shadow 0.25s var(--ease-out),
     background 0.2s var(--ease-out);
 }
+.fab.open svg { transform: rotate(45deg); }
 .fab:hover {
   transform: translateY(-2px) scale(1.04);
   box-shadow:
@@ -1536,43 +1576,10 @@ body[data-theme="light"] .settings-footer-content button:hover { background: rgb
     0 6px 14px rgba(0,0,0,0.34);
 }
 .fab:active { transform: scale(0.92); }
-.fab svg { width: 24px; height: 24px; }
-.inbox-fab {
-  bottom: max(94px, calc(var(--sa-bottom) + 90px));
-  background: var(--menu-bg);
-  color: var(--text);
-  box-shadow: 0 10px 26px rgba(0,0,0,0.28);
-  transition:
-    transform 0.25s var(--ease-spring),
-    background 0.2s var(--ease-out),
-    opacity 0.2s var(--ease-out);
-}
-.inbox-fab:hover {
-  background: var(--menu-bg-hover);
-  transform: translateY(-2px) scale(1.04);
-}
-.inbox-fab:active { transform: scale(0.92); }
-.inbox-fab svg { width: 24px; height: 24px; }
-.inbox-badge {
-  position: absolute;
-  top: -3px;
-  right: -3px;
-  min-width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  padding: 0 6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent);
-  color: white;
-  font-size: 11px;
-  font-weight: 900;
-  transform: scale(0);
-  transition: transform 0.22s var(--ease-spring);
-}
-.inbox-fab.has-items .inbox-badge {
-  transform: scale(1);
+.fab svg {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.24s var(--ease-spring);
 }
 .fab.fab-hide {
   opacity: 0;
@@ -1582,11 +1589,8 @@ body[data-theme="light"] .settings-footer-content button:hover { background: rgb
     opacity 0.2s var(--ease-out),
     transform 0.25s var(--ease-out);
 }
-.inbox-fab.fab-hide {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(20px) scale(0.7);
-}
+.fab-menu.fab-hide,
+.fab-menu-backdrop.fab-hide { display: none; }
 
 /* ------------ Capture modal ------------ */
 .capture-backdrop {
@@ -1824,8 +1828,26 @@ body[data-theme="light"] .capture-actions .capture-submit { background: var(--ac
 }
 
 @media (max-width: 420px) {
+  .date-hero {
+    padding-top: max(44px, calc(var(--sa-top) + 38px));
+    padding-bottom: 58px;
+  }
+  .date-hero-day {
+    font-size: 184px;
+  }
+  .date-hero-month,
+  .date-hero-year {
+    font-size: 50px;
+  }
+  .date-hero-month {
+    margin-top: 28px;
+  }
+  .date-hero-weekday {
+    font-size: 48px;
+    padding-bottom: 0;
+  }
   .fab { width: 56px; height: 56px; right: max(18px, calc(var(--sa-right) + 14px)); bottom: max(22px, calc(var(--sa-bottom) + 18px)); }
-  .inbox-fab { width: 52px; height: 52px; right: max(20px, calc(var(--sa-right) + 16px)); bottom: max(92px, calc(var(--sa-bottom) + 88px)); }
+  .fab-menu { right: max(18px, calc(var(--sa-right) + 14px)); bottom: max(90px, calc(var(--sa-bottom) + 86px)); }
   .capture-modal { border-radius: 18px; padding: 16px 14px 14px; }
   .capture-input { font-size: 16px; padding: 13px 12px; } /* keep 16px so iOS doesn't zoom */
   .capture-actions button { padding: 12px 14px; font-size: 13px; }
@@ -1890,13 +1912,14 @@ body[data-theme="light"] .capture-actions .capture-submit { background: var(--ac
   <rect width="100%" height="100%" filter="url(#grain)"/>
 </svg>
 
-<button class="menu-btn" id="open-settings" aria-label="Open settings">
-  <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-    <line x1="2" y1="5" x2="16" y2="5"/>
-    <line x1="2" y1="9" x2="16" y2="9"/>
-    <line x1="2" y1="13" x2="16" y2="13"/>
-  </svg>
-</button>
+<section class="date-hero" id="date-hero" aria-label="Current date">
+  <div class="date-hero-main">
+    <div class="date-hero-day" id="date-hero-day"></div>
+    <div class="date-hero-month" id="date-hero-month"></div>
+    <div class="date-hero-year" id="date-hero-year"></div>
+  </div>
+  <div class="date-hero-weekday" id="date-hero-weekday"></div>
+</section>
 
 <div class="app-scroll" id="app-scroll">
   <main class="app" id="app"></main>
@@ -1979,19 +2002,65 @@ body[data-theme="light"] .capture-actions .capture-submit { background: var(--ac
   </div>
 </aside>
 
-<button class="fab" id="open-capture" aria-label="Add to inbox" title="Add to inbox">
+<div class="fab-menu-backdrop" id="fab-menu-backdrop"></div>
+<div class="fab-menu" id="fab-menu" role="menu" aria-hidden="true">
+  <button type="button" data-action="capture" role="menuitem">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    <span class="fab-menu-label">Add task</span>
+  </button>
+  <div class="fab-menu-divider" aria-hidden="true"></div>
+  <button type="button" data-action="view-mode" data-view-mode="list" role="menuitemradio" aria-checked="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <line x1="7" y1="7" x2="19" y2="7"/>
+      <line x1="7" y1="12" x2="19" y2="12"/>
+      <line x1="7" y1="17" x2="19" y2="17"/>
+      <line x1="4" y1="7" x2="4.01" y2="7"/>
+      <line x1="4" y1="12" x2="4.01" y2="12"/>
+      <line x1="4" y1="17" x2="4.01" y2="17"/>
+    </svg>
+    <span class="fab-menu-label">List</span>
+  </button>
+  <button type="button" data-action="view-mode" data-view-mode="agenda" role="menuitemradio" aria-checked="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="4" y="5" width="16" height="15" rx="2"/>
+      <path d="M8 3v4M16 3v4M4 10h16"/>
+    </svg>
+    <span class="fab-menu-label">Agenda</span>
+  </button>
+  <button type="button" data-action="view-mode" data-view-mode="undated" id="menu-undated" role="menuitemradio" aria-checked="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M5 6h14v12H5z"/>
+      <path d="M8 10h8M8 14h5"/>
+    </svg>
+    <span class="fab-menu-label">No date</span>
+    <span class="inbox-badge" id="inbox-badge">0</span>
+  </button>
+  <button type="button" data-action="toggle-next-7" id="menu-next-7" role="menuitemcheckbox" aria-checked="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M8 3v4M16 3v4M4 10h16"/>
+      <rect x="4" y="5" width="16" height="15" rx="2"/>
+      <path d="M9 15h6"/>
+    </svg>
+    <span class="fab-menu-label">Next 7</span>
+  </button>
+  <div class="fab-menu-divider" aria-hidden="true"></div>
+  <button type="button" data-action="settings" role="menuitem">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.8 1.8 0 0 0 .36 2l.05.05a2.1 2.1 0 1 1-3 3l-.05-.05a1.8 1.8 0 0 0-2-.36 1.8 1.8 0 0 0-1.1 1.66V21.4a2.1 2.1 0 1 1-4.2 0v-.07a1.8 1.8 0 0 0-1.1-1.66 1.8 1.8 0 0 0-2 .36l-.05.05a2.1 2.1 0 1 1-3-3l.05-.05a1.8 1.8 0 0 0 .36-2 1.8 1.8 0 0 0-1.66-1.1H2a2.1 2.1 0 1 1 0-4.2h.07a1.8 1.8 0 0 0 1.66-1.1 1.8 1.8 0 0 0-.36-2l-.05-.05a2.1 2.1 0 1 1 3-3l.05.05a1.8 1.8 0 0 0 2 .36 1.8 1.8 0 0 0 1.1-1.66V2.6a2.1 2.1 0 1 1 4.2 0v.07a1.8 1.8 0 0 0 1.1 1.66 1.8 1.8 0 0 0 2-.36l.05-.05a2.1 2.1 0 1 1 3 3l-.05.05a1.8 1.8 0 0 0-.36 2 1.8 1.8 0 0 0 1.66 1.1H22a2.1 2.1 0 1 1 0 4.2h-.07a1.8 1.8 0 0 0-1.66 1.1Z"/>
+    </svg>
+    <span class="fab-menu-label">Settings</span>
+  </button>
+</div>
+
+<button class="fab" id="open-actions" aria-label="Open quick actions" aria-expanded="false" aria-controls="fab-menu" title="Quick actions">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <line x1="12" y1="5" x2="12" y2="19"/>
     <line x1="5" y1="12" x2="19" y2="12"/>
   </svg>
-</button>
-
-<button class="inbox-fab" id="open-undated" aria-label="No-date tasks" title="No-date tasks">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M5 6h14v12H5z"/>
-    <path d="M8 10h8M8 14h5"/>
-  </svg>
-  <span class="inbox-badge" id="inbox-badge">0</span>
 </button>
 
 <div class="capture-backdrop" id="capture-backdrop"></div>
@@ -2441,19 +2510,16 @@ function pluralDays(n) {
   return `${n} day${n === 1 ? '' : 's'}`;
 }
 
-function viewControlsHTML() {
-  const viewIndex = settings.viewMode === 'agenda' ? 1 : settings.viewMode === 'undated' ? 2 : 0;
-  return `
-    <section class="view-toolbar" aria-label="View options">
-      <div class="view-tabs" role="tablist" aria-label="View mode" style="--view-index: ${viewIndex}">
-        <span class="view-tab-indicator" aria-hidden="true"></span>
-        <button type="button" data-action="view-mode" data-view-mode="list" class="${settings.viewMode === 'list' ? 'on' : ''}" aria-pressed="${settings.viewMode === 'list'}">List</button>
-        <button type="button" data-action="view-mode" data-view-mode="agenda" class="${settings.viewMode === 'agenda' ? 'on' : ''}" aria-pressed="${settings.viewMode === 'agenda'}">Agenda</button>
-        <button type="button" data-action="view-mode" data-view-mode="undated" class="${settings.viewMode === 'undated' ? 'on' : ''}" aria-pressed="${settings.viewMode === 'undated'}">No date</button>
-      </div>
-      <button type="button" class="range-toggle ${settings.onlyNext7 ? 'on' : ''}" data-action="toggle-next-7" aria-pressed="${settings.onlyNext7}">Next 7</button>
-    </section>
-  `;
+function syncDateHero() {
+  const dayEl = document.getElementById('date-hero-day');
+  const monthEl = document.getElementById('date-hero-month');
+  const yearEl = document.getElementById('date-hero-year');
+  const weekdayEl = document.getElementById('date-hero-weekday');
+  if (!dayEl || !monthEl || !yearEl || !weekdayEl) return;
+  dayEl.textContent = String(today.getDate());
+  monthEl.textContent = MONTHS_EN[today.getMonth()].slice(0, 3);
+  yearEl.textContent = String(today.getFullYear());
+  weekdayEl.textContent = DAYS_SHORT[today.getDay()];
 }
 
 function dayHTML(d) {
@@ -2600,14 +2666,14 @@ function getDaysForCurrentView() {
 /* ====================== Mount ====================== */
 function mount() {
   materializeRecurring();
+  syncDateHero();
   const app = document.getElementById('app');
   const days = getDaysForCurrentView();
   if (!days.length && !settings.onlyNext7 && settings.viewMode !== 'undated') {
     app.innerHTML = `
-      ${viewControlsHTML()}
       <div class="empty-state">
         <strong>No days selected</strong>
-        <span>Open settings (top right) and pick the days you want to see.</span>
+        <span>Open settings from the + menu and pick the days you want to see.</span>
       </div>
     `;
   } else {
@@ -2618,10 +2684,10 @@ function mount() {
         : settings.viewMode === 'undated'
           ? undatedHTML()
           : days.map(dayHTML).join('');
-    app.innerHTML = viewControlsHTML() + mainView;
+    app.innerHTML = mainView;
   }
   bindAppEvents();
-  syncInboxFab();
+  syncActionMenuState();
   syncShellColors();
 }
 
@@ -2639,13 +2705,25 @@ function syncShellColors() {
   if (lastSection) lastSection.classList.add('last-section');
 }
 
-function syncInboxFab() {
-  const btn = document.getElementById('open-undated');
+function syncActionMenuState() {
+  const menu = document.getElementById('fab-menu');
+  const undatedBtn = document.getElementById('menu-undated');
+  const next7Btn = document.getElementById('menu-next-7');
   const badge = document.getElementById('inbox-badge');
-  if (!btn || !badge) return;
-  badge.textContent = String(Math.min(inbox.length, 99));
-  btn.classList.toggle('has-items', inbox.length > 0);
-  btn.classList.toggle('active', settings.viewMode === 'undated' && !settings.onlyNext7);
+  if (!menu) return;
+  menu.querySelectorAll('button[data-view-mode]').forEach(btn => {
+    const active = settings.viewMode === btn.dataset.viewMode && !settings.onlyNext7;
+    btn.classList.toggle('on', active);
+    btn.setAttribute('aria-checked', active ? 'true' : 'false');
+  });
+  if (next7Btn) {
+    next7Btn.classList.toggle('on', settings.onlyNext7);
+    next7Btn.setAttribute('aria-checked', settings.onlyNext7 ? 'true' : 'false');
+  }
+  if (undatedBtn && badge) {
+    badge.textContent = String(Math.min(inbox.length, 99));
+    undatedBtn.classList.toggle('has-items', inbox.length > 0);
+  }
 }
 
 /* ====================== Surgical updates ====================== */
@@ -2948,35 +3026,6 @@ function bindAppEvents() {
       if (e.key === 'Enter') {
         e.preventDefault();
         captureTask();
-      }
-    });
-  }
-  const viewToolbar = document.querySelector('.view-toolbar');
-  if (viewToolbar) {
-    viewToolbar.addEventListener('click', e => {
-      const btn = e.target.closest('button[data-action]');
-      if (!btn) return;
-      if (btn.dataset.action === 'view-mode') {
-        const mode = btn.dataset.viewMode;
-        if (!['list', 'agenda', 'undated'].includes(mode) || settings.viewMode === mode) return;
-        const tabs = btn.closest('.view-tabs');
-        if (tabs) {
-          tabs.style.setProperty('--view-index', mode === 'agenda' ? 1 : mode === 'undated' ? 2 : 0);
-          tabs.querySelectorAll('button[data-view-mode]').forEach(tab => tab.classList.toggle('on', tab === btn));
-        }
-        setTimeout(() => {
-          settings.viewMode = mode;
-          settings.onlyNext7 = false;
-          if (mode === 'agenda') selectedAgendaKey = dateKey(today);
-          saveSettings();
-          mount();
-        }, 170);
-      }
-      if (btn.dataset.action === 'toggle-next-7') {
-        settings.onlyNext7 = !settings.onlyNext7;
-        if (settings.onlyNext7) selectedAgendaKey = dateKey(today);
-        saveSettings();
-        mount();
       }
     });
   }
@@ -3579,6 +3628,7 @@ function addTemplate() {
 }
 
 function openSettings() {
+  closeActionMenu();
   renderDayToggles();
   renderThemeSwitch();
   renderNotificationsSwitch();
@@ -3587,15 +3637,13 @@ function openSettings() {
   renderBackupMeta();
   panel.classList.add('open');
   backdrop.classList.add('open');
-  document.getElementById('open-capture')?.classList.add('fab-hide');
-  document.getElementById('open-undated')?.classList.add('fab-hide');
+  setFabHidden(true);
 }
 function closeSettings() {
   panel.classList.remove('open');
   backdrop.classList.remove('open');
   if (!document.getElementById('capture-modal').classList.contains('open')) {
-    document.getElementById('open-capture')?.classList.remove('fab-hide');
-    document.getElementById('open-undated')?.classList.remove('fab-hide');
+    setFabHidden(false);
   }
 }
 
@@ -3605,10 +3653,40 @@ const captureModal    = document.getElementById('capture-modal');
 const captureForm     = document.getElementById('capture-form');
 const captureInput    = document.getElementById('capture-input');
 const captureSubmit   = document.getElementById('capture-submit');
-const fabBtn          = document.getElementById('open-capture');
-const inboxFabBtn     = document.getElementById('open-undated');
+const actionFabBtn    = document.getElementById('open-actions');
+const actionMenu      = document.getElementById('fab-menu');
+const actionBackdrop  = document.getElementById('fab-menu-backdrop');
 
 const appScrollEl = document.getElementById('app-scroll');
+
+function setFabHidden(hidden) {
+  actionFabBtn?.classList.toggle('fab-hide', hidden);
+  actionMenu?.classList.toggle('fab-hide', hidden);
+  actionBackdrop?.classList.toggle('fab-hide', hidden);
+}
+
+function openActionMenu() {
+  syncActionMenuState();
+  actionMenu.classList.add('open');
+  actionBackdrop.classList.add('open');
+  actionMenu.setAttribute('aria-hidden', 'false');
+  actionFabBtn.classList.add('open');
+  actionFabBtn.setAttribute('aria-expanded', 'true');
+}
+
+function closeActionMenu() {
+  if (!actionMenu || !actionBackdrop || !actionFabBtn) return;
+  actionMenu.classList.remove('open');
+  actionBackdrop.classList.remove('open');
+  actionMenu.setAttribute('aria-hidden', 'true');
+  actionFabBtn.classList.remove('open');
+  actionFabBtn.setAttribute('aria-expanded', 'false');
+}
+
+function toggleActionMenu() {
+  if (actionMenu.classList.contains('open')) closeActionMenu();
+  else openActionMenu();
+}
 
 function syncCaptureViewport() {
   if (!captureModal.classList.contains('open')) return;
@@ -3619,10 +3697,10 @@ function syncCaptureViewport() {
 }
 
 function openCapture() {
+  closeActionMenu();
   captureBackdrop.classList.add('open');
   captureModal.classList.add('open');
-  fabBtn.classList.add('fab-hide');
-  inboxFabBtn.classList.add('fab-hide');
+  setFabHidden(true);
   appScrollEl?.classList.add('scroll-lock');
   captureInput.value = '';
   captureSubmit.disabled = true;
@@ -3637,8 +3715,7 @@ function openCapture() {
 function closeCapture() {
   captureBackdrop.classList.remove('open');
   captureModal.classList.remove('open');
-  fabBtn.classList.remove('fab-hide');
-  inboxFabBtn.classList.remove('fab-hide');
+  setFabHidden(false);
   appScrollEl?.classList.remove('scroll-lock');
   captureInput.blur();
   captureModal.style.removeProperty('--kb-offset');
@@ -3653,12 +3730,38 @@ function submitCapture() {
   showToast('Added to inbox');
 }
 
-fabBtn.addEventListener('click', openCapture);
-inboxFabBtn.addEventListener('click', () => {
-  settings.viewMode = 'undated';
-  settings.onlyNext7 = false;
-  saveSettings();
-  mount();
+actionFabBtn.addEventListener('click', toggleActionMenu);
+actionBackdrop.addEventListener('click', closeActionMenu);
+actionMenu.addEventListener('click', e => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  if (action === 'capture') {
+    openCapture();
+    return;
+  }
+  if (action === 'settings') {
+    openSettings();
+    return;
+  }
+  if (action === 'view-mode') {
+    const mode = btn.dataset.viewMode;
+    if (!['list', 'agenda', 'undated'].includes(mode)) return;
+    settings.viewMode = mode;
+    settings.onlyNext7 = false;
+    if (mode === 'agenda') selectedAgendaKey = dateKey(today);
+    saveSettings();
+    closeActionMenu();
+    mount();
+    return;
+  }
+  if (action === 'toggle-next-7') {
+    settings.onlyNext7 = !settings.onlyNext7;
+    if (settings.onlyNext7) selectedAgendaKey = dateKey(today);
+    saveSettings();
+    closeActionMenu();
+    mount();
+  }
 });
 captureBackdrop.addEventListener('click', closeCapture);
 document.getElementById('capture-cancel').addEventListener('click', closeCapture);
@@ -3682,11 +3785,11 @@ settingsFooterToggle.addEventListener('click', () => {
   settingsFooterToggle.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
 });
 
-document.getElementById('open-settings').addEventListener('click', openSettings);
 document.getElementById('close-settings').addEventListener('click', closeSettings);
 backdrop.addEventListener('click', closeSettings);
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
+    closeActionMenu();
     closeSettings();
     closeMetaEditor();
   }
