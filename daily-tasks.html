@@ -16,6 +16,9 @@
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300..700&display=swap" rel="stylesheet">
 
 <style>
 :root {
@@ -27,6 +30,10 @@
   --divider: rgba(255,255,255,0.08);
   --accent: #FF6A3D;
   --accent-soft: rgba(255, 106, 61, 0.18);
+  --success: #34C759;
+  --success-soft: rgba(52, 199, 89, 0.18);
+  --warning: #FFB340;
+  --warning-soft: rgba(255, 179, 64, 0.18);
   --danger: #FF453A;
   --danger-soft: rgba(255, 69, 58, 0.2);
   --panel-bg: #232325;
@@ -46,6 +53,9 @@
   --day-tone-5: #2B2B2E;
   --day-tone-6: #242427;
   --day-tone-7: #1F1F22;
+  --date-primary: rgba(242,242,244,0.96);
+  --date-secondary: rgba(142,142,147,0.86);
+  --date-ghost: rgba(142,142,147,0.22);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -79,6 +89,10 @@ body[data-theme="light"] {
   --divider: rgba(35,35,37,0.08);
   --accent: #E9653D;
   --accent-soft: rgba(233, 101, 61, 0.16);
+  --success: #2F9D55;
+  --success-soft: rgba(47, 157, 85, 0.14);
+  --warning: #B87918;
+  --warning-soft: rgba(184, 121, 24, 0.14);
   --danger: #D84C42;
   --danger-soft: rgba(216, 76, 66, 0.14);
   --panel-bg: #FBF8F1;
@@ -98,6 +112,9 @@ body[data-theme="light"] {
   --day-tone-5: #DED9D2;
   --day-tone-6: #E7E3DC;
   --day-tone-7: #F0ECE5;
+  --date-primary: rgba(52,52,54,0.94);
+  --date-secondary: rgba(133,128,120,0.9);
+  --date-ghost: rgba(133,128,120,0.24);
 }
 body {
   position: relative;
@@ -123,7 +140,8 @@ body {
 .inbox.last-section,
 .agenda-view.last-section,
 .next7-view.last-section,
-.undated-view.last-section {
+.undated-view.last-section,
+.week-plan-view.last-section {
   padding-bottom: max(130px, calc(var(--sa-bottom) + 110px));
   flex-grow: 1;
 }
@@ -159,6 +177,8 @@ body {
   align-items: end;
   pointer-events: none;
   color: var(--text);
+  font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, system-ui, sans-serif;
+  font-optical-sizing: auto;
 }
 .date-hero-main {
   min-width: 0;
@@ -166,36 +186,37 @@ body {
   justify-items: start;
 }
 .date-hero-day {
-  font-size: 208px;
-  font-weight: 950;
-  line-height: 0.72;
+  font-size: 196px;
+  font-weight: 390;
+  line-height: 0.7;
   letter-spacing: 0;
-  color: var(--text);
+  color: var(--date-primary);
 }
 .date-hero-month,
 .date-hero-year {
   display: block;
-  font-weight: 900;
+  font-weight: 520;
   letter-spacing: 0;
   text-transform: uppercase;
 }
 .date-hero-month {
-  margin-top: 30px;
-  font-size: 54px;
-  line-height: 0.82;
+  margin-top: 16px;
+  font-size: 38px;
+  line-height: 0.9;
   color: var(--text);
 }
 .date-hero-year {
-  margin-top: 6px;
-  font-size: 54px;
-  line-height: 0.84;
-  color: var(--text-dim);
+  margin-top: 2px;
+  font-size: 38px;
+  font-weight: 440;
+  line-height: 0.9;
+  color: var(--date-secondary);
 }
 .date-hero-weekday {
-  padding: 0 6px 2px 18px;
-  color: rgba(142,142,147,0.22);
-  font-size: 56px;
-  font-weight: 800;
+  padding: 0 6px 1px 18px;
+  color: var(--date-ghost);
+  font-size: 40px;
+  font-weight: 360;
   line-height: 1;
 }
 
@@ -383,10 +404,22 @@ html { scroll-behavior: smooth; }
   font-weight: 800;
   line-height: 1;
   white-space: nowrap;
+  transition: color 0.2s var(--ease-out), background 0.2s var(--ease-out), opacity 0.2s var(--ease-out);
 }
 .day.today .day-status {
   color: var(--accent);
   background: var(--accent-soft);
+}
+.day.empty-day .day-status {
+  min-width: auto;
+  color: rgba(142,142,147,0.58);
+  background: transparent;
+  padding-right: 2px;
+}
+.day.empty-day.today .day-status {
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding-right: 9px;
 }
 
 .pending-dot {
@@ -569,7 +602,7 @@ html { scroll-behavior: smooth; }
   position: absolute;
   top: 0; bottom: 0;
   display: flex; align-items: center;
-  font-size: 13px; font-weight: 700;
+  font-size: 13px; font-weight: 850;
   color: white;
   letter-spacing: 0;
   pointer-events: none;
@@ -577,8 +610,8 @@ html { scroll-behavior: smooth; }
   transition: opacity 0.15s var(--ease-out);
   padding: 0 16px;
 }
-.swipe-left { left: 0; right: 0; background: var(--accent); justify-content: flex-start; }
-.swipe-right { left: 0; right: 0; background: var(--danger); justify-content: flex-end; }
+.swipe-left { left: 0; right: 0; background: var(--success); justify-content: flex-start; }
+.swipe-right { left: 0; right: 0; background: var(--warning); color: #191919; justify-content: flex-end; }
 .swipe-action svg { width: 16px; height: 16px; flex-shrink: 0; }
 .swipe-left svg { margin-right: 8px; }
 .swipe-right svg { margin-left: 8px; }
@@ -589,20 +622,36 @@ html { scroll-behavior: smooth; }
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
-  min-height: 50px;
-  padding: 9px 0;
+  gap: 12px;
+  min-height: 58px;
+  padding: 11px 8px;
   position: relative;
   background: var(--day-bg);
+  border-radius: 14px;
   touch-action: pan-y;
-  transition: transform 0.28s var(--ease-emph), background 0.2s var(--ease-out);
+  transition: transform 0.28s var(--ease-emph), background 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
   will-change: transform;
+}
+.task-item:nth-child(odd) .task {
+  background: transparent;
 }
 .task-item:nth-child(even) .task {
   background: var(--tone-row);
-  border-radius: 12px;
-  padding-left: 8px;
-  padding-right: 8px;
+}
+.task-item.has-note .task,
+.task-item.has-meta .task,
+.task-item.is-recurring .task {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.035);
+}
+.task-item.micro-pop .task { animation: task-pop 0.38s var(--ease-spring); }
+.task-item.micro-move .task { animation: task-slide-away 0.28s var(--ease-in-out) both; }
+@keyframes task-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.025); }
+  100% { transform: scale(1); }
+}
+@keyframes task-slide-away {
+  to { opacity: 0; transform: translateX(24px) scale(0.96); }
 }
 .task.dragging {
   z-index: 10;
@@ -651,11 +700,11 @@ html { scroll-behavior: smooth; }
 .task-main {
   min-width: 0;
   display: grid;
-  gap: 3px;
+  gap: 7px;
 }
 .task-text {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 620;
   letter-spacing: 0;
   line-height: 1.35;
   color: var(--text);
@@ -672,13 +721,13 @@ html { scroll-behavior: smooth; }
 }
 
 .recur-icon {
-  width: 12px; height: 12px;
-  color: var(--text-dim);
+  width: 13px; height: 13px;
+  color: currentColor;
   flex-shrink: 0;
   opacity: 0.7;
 }
 
-.task-note-btn, .task-meta-btn, .task-delete {
+.task-note-btn, .task-meta-btn, .task-snooze-btn, .task-delete {
   background: none; border: none;
   color: var(--text-dim);
   cursor: pointer;
@@ -690,18 +739,18 @@ html { scroll-behavior: smooth; }
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 2px;
-  opacity: 0.64;
+  gap: 1px;
+  opacity: 0.5;
 }
-.task-note-btn { width: 32px; height: 32px; opacity: 1; }
-.task-meta-btn { width: 32px; height: 32px; opacity: 1; }
-.task-note-btn svg, .task-meta-btn svg { width: 13px; height: 13px; }
-.task-delete { width: 32px; height: 32px; font-size: 18px; line-height: 1; opacity: 1; }
+.task-note-btn, .task-meta-btn, .task-snooze-btn { width: 30px; height: 30px; opacity: 1; }
+.task-note-btn svg, .task-meta-btn svg, .task-snooze-btn svg { width: 13px; height: 13px; }
+.task-delete { width: 30px; height: 30px; font-size: 18px; line-height: 1; opacity: 1; }
 .task:hover .task-actions, .task:focus-within .task-actions { opacity: 1; }
-.task-note-btn:hover, .task-meta-btn:hover, .task-delete:hover { background: rgba(255,255,255,0.06); color: var(--text); }
-.task-note-btn:active, .task-meta-btn:active, .task-delete:active { transform: scale(0.9); }
-.task-item.has-note .task-note-btn { opacity: 1; color: var(--accent); }
-.task-item.has-meta .task-meta-btn { opacity: 1; color: var(--accent); }
+.task-note-btn:hover, .task-meta-btn:hover, .task-snooze-btn:hover, .task-delete:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+.task-note-btn:active, .task-meta-btn:active, .task-snooze-btn:active, .task-delete:active { transform: scale(0.9); }
+.task-item.has-note .task-note-btn { opacity: 1; color: var(--accent); background: var(--accent-soft); }
+.task-item.has-meta .task-meta-btn { opacity: 1; color: var(--accent); background: var(--accent-soft); }
+.task-item.has-reminder .task-meta-btn { color: var(--warning); background: var(--warning-soft); }
 @media (hover: none) {
   .task-actions { opacity: 0.74; }
 }
@@ -762,9 +811,9 @@ html { scroll-behavior: smooth; }
 .task-flags {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 5px;
   color: var(--text-dim);
-  min-height: 13px;
 }
 .task-flags:empty { display: none; }
 
@@ -780,9 +829,22 @@ html { scroll-behavior: smooth; }
   color: var(--text);
   font-weight: 800;
 }
-.task-flags:empty {
-  display: none;
+.task-flag {
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: var(--tone-raised);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
 }
+.task-flag.reminder { color: var(--warning); background: var(--warning-soft); }
+.task-flag.deadline { color: var(--danger); background: var(--danger-soft); }
+.task-flag.recur { color: var(--success); background: var(--success-soft); }
 .task-flag svg {
   width: 13px;
   height: 13px;
@@ -809,7 +871,7 @@ html { scroll-behavior: smooth; }
     border-radius: 11px;
   }
   .agenda-list .task {
-    grid-template-columns: 24px minmax(0, 1fr) 96px;
+    grid-template-columns: 24px minmax(0, 1fr) 124px;
   }
 }
 
@@ -841,10 +903,14 @@ html { scroll-behavior: smooth; }
 
 /* Day-level empty state */
 .day-empty {
-  font-size: 14px;
+  margin: 4px 0 8px 34px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--tone-row);
   color: var(--text-dim);
-  font-style: italic;
-  padding: 4px 0 6px;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.35;
   letter-spacing: 0;
 }
 
@@ -971,6 +1037,106 @@ html { scroll-behavior: smooth; }
 }
 .agenda-list .add-task {
   padding-top: 14px;
+}
+
+/* ------------ Week planning ------------ */
+.week-plan-view {
+  --day-bg: var(--day-tone-2);
+  background: var(--day-bg);
+  margin: 0 calc(-1 * max(var(--page-pad), var(--sa-left))) 0 calc(-1 * max(var(--page-pad), var(--sa-right)));
+  padding: 24px max(var(--page-pad), var(--sa-left)) 24px max(var(--page-pad), var(--sa-right));
+}
+.week-plan-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.week-plan-title {
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 900;
+}
+.week-plan-subtitle {
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: right;
+}
+.week-plan-grid {
+  display: grid;
+  gap: 8px;
+}
+.week-plan-day {
+  min-height: 92px;
+  border: none;
+  border-radius: 16px;
+  background: var(--tone-row);
+  color: var(--text);
+  font: inherit;
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s var(--ease-out), transform 0.16s var(--ease-out), box-shadow 0.18s var(--ease-out);
+}
+.week-plan-day:hover { background: var(--tone-row-strong); }
+.week-plan-day:active { transform: scale(0.985); }
+.week-plan-day.today {
+  box-shadow: inset 0 0 0 1px var(--accent-soft);
+}
+.week-plan-date {
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+}
+.week-plan-date strong {
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 850;
+}
+.week-plan-date span {
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 900;
+}
+.week-plan-main {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+.week-plan-name {
+  font-size: 16px;
+  font-weight: 850;
+  line-height: 1;
+}
+.week-plan-preview {
+  min-width: 0;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.week-plan-metrics {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 850;
+}
+.week-plan-count {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 6px 8px;
 }
 
 /* ------------ Next 7 task view ------------ */
@@ -1344,6 +1510,29 @@ body[data-theme="light"] .segmented button.on {
   background: var(--accent);
   color: white;
 }
+.recur-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.recur-preview span {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: var(--tone-raised);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1;
+}
+.recur-preview span:first-child {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
 .recur-options [data-mode-field] { display: none; }
 .recur-template[data-repeat-mode="weekly"] [data-mode-field="weekly"],
 .recur-template[data-repeat-mode="monthly"] [data-mode-field="monthly"],
@@ -1489,6 +1678,19 @@ body[data-theme="light"] .settings-footer-content button:hover { background: rgb
   pointer-events: auto;
   transform: translateY(0) scale(1);
 }
+.fab-menu.open button {
+  animation: action-rise 0.28s var(--ease-emph) both;
+}
+.fab-menu.open button:nth-of-type(2) { animation-delay: 18ms; }
+.fab-menu.open button:nth-of-type(3) { animation-delay: 36ms; }
+.fab-menu.open button:nth-of-type(4) { animation-delay: 54ms; }
+.fab-menu.open button:nth-of-type(5) { animation-delay: 72ms; }
+.fab-menu.open button:nth-of-type(6) { animation-delay: 90ms; }
+.fab-menu.open button:nth-of-type(7) { animation-delay: 108ms; }
+@keyframes action-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .fab-menu button {
   min-height: 42px;
   width: 100%;
@@ -1591,6 +1793,84 @@ body[data-theme="light"] .settings-footer-content button:hover { background: rgb
 }
 .fab-menu.fab-hide,
 .fab-menu-backdrop.fab-hide { display: none; }
+
+.app-status,
+.install-prompt {
+  position: fixed;
+  left: 50%;
+  z-index: 83;
+  width: min(360px, calc(100vw - 36px - var(--sa-left) - var(--sa-right)));
+  transform: translateX(-50%) translateY(16px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.24s var(--ease-out), transform 0.26s var(--ease-spring);
+}
+.app-status {
+  bottom: max(96px, calc(var(--sa-bottom) + 92px));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border-radius: 999px;
+  padding: 9px 14px;
+  background: var(--menu-bg);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 850;
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.28);
+}
+.app-status.show,
+.install-prompt.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+.app-status[data-tone="offline"] { color: var(--warning); }
+.app-status[data-tone="ready"] { color: var(--success); }
+.install-prompt {
+  bottom: max(90px, calc(var(--sa-bottom) + 86px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  border-radius: 18px;
+  padding: 10px 10px 10px 14px;
+  background: var(--menu-bg);
+  color: var(--text);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.32);
+}
+.install-prompt strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.2;
+}
+.install-prompt span {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 700;
+}
+.install-prompt button {
+  min-height: 34px;
+  border: none;
+  border-radius: 10px;
+  padding: 0 10px;
+  background: var(--tone-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+.install-prompt .install-confirm {
+  background: var(--accent);
+  color: white;
+}
 
 /* ------------ Capture modal ------------ */
 .capture-backdrop {
@@ -1833,17 +2113,17 @@ body[data-theme="light"] .capture-actions .capture-submit { background: var(--ac
     padding-bottom: 58px;
   }
   .date-hero-day {
-    font-size: 184px;
+    font-size: 178px;
   }
   .date-hero-month,
   .date-hero-year {
-    font-size: 50px;
+    font-size: 36px;
   }
   .date-hero-month {
-    margin-top: 28px;
+    margin-top: 14px;
   }
   .date-hero-weekday {
-    font-size: 48px;
+    font-size: 38px;
     padding-bottom: 0;
   }
   .fab { width: 56px; height: 56px; right: max(18px, calc(var(--sa-right) + 14px)); bottom: max(22px, calc(var(--sa-bottom) + 18px)); }
@@ -1867,7 +2147,7 @@ body[data-theme="light"] .capture-actions .capture-submit { background: var(--ac
     padding-right: 6px;
   }
   .task {
-    grid-template-columns: 24px minmax(0, 1fr) 112px;
+    grid-template-columns: 24px minmax(0, 1fr) 124px;
   }
 }
 
@@ -2046,6 +2326,13 @@ body[data-theme="light"] .capture-actions .capture-submit { background: var(--ac
     </svg>
     <span class="fab-menu-label">Next 7</span>
   </button>
+  <button type="button" data-action="view-mode" data-view-mode="week" role="menuitemradio" aria-checked="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="4" y="5" width="16" height="15" rx="2"/>
+      <path d="M8 3v4M16 3v4M4 10h16M8 14h2M12 14h2M16 14h2"/>
+    </svg>
+    <span class="fab-menu-label">Plan week</span>
+  </button>
   <div class="fab-menu-divider" aria-hidden="true"></div>
   <button type="button" data-action="settings" role="menuitem">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -2110,6 +2397,15 @@ body[data-theme="light"] .capture-actions .capture-submit { background: var(--ac
 </div>
 
 <input type="file" id="import-input" accept="application/json,.json" hidden>
+<div class="app-status" id="app-status" role="status" aria-live="polite"></div>
+<div class="install-prompt" id="install-prompt" role="dialog" aria-live="polite" aria-label="Install app">
+  <div>
+    <strong>Install Daily Tasks</strong>
+    <span>Use it offline from your Android home screen.</span>
+  </div>
+  <button type="button" class="install-confirm" id="install-confirm">Install</button>
+  <button type="button" id="install-dismiss" aria-label="Dismiss install prompt">&times;</button>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -2184,6 +2480,20 @@ function showToast(msg, ms = 2400) {
   showToast._t = setTimeout(() => el.classList.remove('show'), ms);
 }
 
+function showAppStatus(msg, tone = '', ms = 2600) {
+  const el = document.getElementById('app-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.dataset.tone = tone;
+  el.classList.add('show');
+  clearTimeout(showAppStatus._t);
+  showAppStatus._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function isStandaloneApp() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+}
+
 /* ====================== State ====================== */
 let data       = load(STORAGE.data, {});
 let settings   = load(STORAGE.settings, { visibleDays: [0,1,2,3,4,5,6], showLeftovers: true, theme: 'dark', notifications: false, viewMode: 'list', onlyNext7: false });
@@ -2195,11 +2505,12 @@ let openDays   = new Set();
 let today      = new Date();
 let selectedAgendaKey = dateKey(today);
 let metaState = null;
+let deferredInstallPrompt = null;
 
 if (typeof settings.showLeftovers !== 'boolean') settings.showLeftovers = true;
 if (!['dark', 'light'].includes(settings.theme)) settings.theme = 'dark';
 if (typeof settings.notifications !== 'boolean') settings.notifications = false;
-if (!['list', 'agenda', 'undated'].includes(settings.viewMode)) settings.viewMode = 'list';
+if (!['list', 'agenda', 'undated', 'week'].includes(settings.viewMode)) settings.viewMode = 'list';
 if (typeof settings.onlyNext7 !== 'boolean') settings.onlyNext7 = false;
 applyTheme();
 
@@ -2409,7 +2720,42 @@ const ICON_NOTE  = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" s
 const ICON_RECUR = '<svg class="recur-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8 a5 5 0 0 1 8.5 -3.5 L13 6"/><polyline points="13,3 13,6 10,6"/><path d="M13 8 a5 5 0 0 1 -8.5 3.5 L3 10"/><polyline points="3,13 3,10 6,10"/></svg>';
 const ICON_CLOCK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.5"/><path d="M8 4.8 V8 l2.2 1.4"/></svg>';
 const ICON_CAL = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="10" height="9" rx="1.4"/><path d="M5.5 2.8 V5.2 M10.5 2.8 V5.2 M3 6.8 H13"/></svg>';
+const ICON_SNOOZE = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8a4.5 4.5 0 1 0 1.3-3.2"/><path d="M3.5 3.2v2.9h2.9"/><path d="M8 5.5V8l1.8 1.1"/></svg>';
 const ICON_PLUS = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 3.5 V12.5 M3.5 8 H12.5"/></svg>';
+
+function shortDateLabel(key) {
+  const value = toDateInputValue(key);
+  if (!value) return '';
+  const d = parseDateKey(value);
+  return `${MONTHS_EN[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
+}
+
+function formatMetaTime(value) {
+  const dtValue = toDateTimeInputValue(value);
+  if (!dtValue) return '';
+  const d = new Date(dtValue);
+  return Number.isNaN(d.getTime()) ? '' : formatTime(d);
+}
+
+function dayStatusLabel(total, pending, d) {
+  if (total) return `${pending} left`;
+  if (isSameDate(d, today)) return 'Ready';
+  if (d < today) return 'Done';
+  const labels = ['Open', 'Quiet', 'Space', 'Free'];
+  return labels[d.getDay() % labels.length];
+}
+
+function emptyDayMessage(d) {
+  if (isSameDate(d, today)) return 'A clean slate. Add only what deserves today.';
+  if (d < today) return 'No loose ends here.';
+  const messages = [
+    'Keep this day light or drop in a plan.',
+    'No commitments yet.',
+    'Space reserved for future you.',
+    'A quiet day on the board.',
+  ];
+  return messages[d.getDay() % messages.length];
+}
 
 function taskHTML(t, key, originKey = key, options = {}) {
   const hasNote = !!(t.note && t.note.trim());
@@ -2419,24 +2765,26 @@ function taskHTML(t, key, originKey = key, options = {}) {
   const hasDeadline = !!toDateInputValue(t.deadlineDate);
   const hasMeta = hasEndDate || hasReminder || hasDeadline;
   const flags = [
-    hasEndDate ? `<span class="task-flag" title="Ends ${escapeHtml(t.endDate)}">${ICON_CAL}</span>` : '',
-    hasDeadline ? `<span class="task-flag" title="Deadline ${escapeHtml(t.deadlineDate)}">${ICON_CAL}</span>` : '',
-    hasReminder ? `<span class="task-flag" title="Reminder">${ICON_CLOCK}</span>` : '',
+    hasReminder ? `<span class="task-flag reminder" title="Reminder">${ICON_CLOCK}<span>${formatMetaTime(t.notifyAt)}</span></span>` : '',
+    hasDeadline ? `<span class="task-flag deadline" title="Deadline ${escapeHtml(t.deadlineDate)}">${ICON_CAL}<span>Due ${shortDateLabel(t.deadlineDate)}</span></span>` : '',
+    hasEndDate ? `<span class="task-flag" title="Ends ${escapeHtml(t.endDate)}">${ICON_CAL}<span>Until ${shortDateLabel(t.endDate)}</span></span>` : '',
+    isRecurring ? `<span class="task-flag recur" title="Repeating task">${ICON_RECUR}<span>Repeats</span></span>` : '',
   ].join('');
   return `
-    <div class="task-item ${hasNote ? 'has-note' : ''} ${hasMeta ? 'has-meta' : ''}" data-id="${t.id}" data-key="${key}" data-origin-key="${originKey}">
+    <div class="task-item ${hasNote ? 'has-note' : ''} ${hasMeta ? 'has-meta' : ''} ${hasReminder ? 'has-reminder' : ''} ${isRecurring ? 'is-recurring' : ''}" data-id="${t.id}" data-key="${key}" data-origin-key="${originKey}">
       <div class="task-wrap">
         <div class="swipe-action swipe-left">${ICON_CHECK_BIG}<span>Mark done</span></div>
-        <div class="swipe-action swipe-right"><span>Delete</span>${ICON_TRASH}</div>
+        <div class="swipe-action swipe-right"><span>Tomorrow</span>${ICON_SNOOZE}</div>
         <div class="task ${t.done ? 'done' : ''}">
           <div class="checkbox" data-action="toggle">${ICON_CHECK}</div>
           <div class="task-main">
             <div class="task-text" contenteditable="true" enterkeyhint="done" data-action="edit">${escapeHtml(t.text)}</div>
-            <div class="task-flags">${flags}${isRecurring ? ICON_RECUR : ''}</div>
+            <div class="task-flags">${flags}</div>
           </div>
           <div class="task-actions">
             <button class="task-note-btn" data-action="note" title="Toggle note">${ICON_NOTE}</button>
             <button class="task-meta-btn" data-action="meta" title="Dates and reminder">${ICON_CLOCK}</button>
+            <button class="task-snooze-btn" data-action="snooze" title="Move to tomorrow">${ICON_SNOOZE}</button>
             <button class="task-delete" data-action="delete" title="Delete">&times;</button>
           </div>
         </div>
@@ -2536,17 +2884,14 @@ function dayHTML(d) {
   const done = tasks.filter(t => t.done).length;
   const pending = pendingCount(tasks);
   const pct = total ? Math.round((done / total) * 100) : 0;
-  const status = total ? `${pending} left` : 'Clear';
+  const status = dayStatusLabel(total, pending, d);
   const showDot = total > 0 && done === 0;
   const showProgress = total > 0 && done > 0 && done < total;
   const leftovers = isToday ? getLeftovers() : [];
-  const isFuture = d > today && !isToday;
-  const emptyMsg = isToday
-    ? "What's the move today?"
-    : isFuture ? "Nothing planned — what's the move?" : "Nothing here.";
+  const emptyMsg = emptyDayMessage(d);
 
   return `
-    <div class="day ${isToday ? 'today' : ''} ${isOpen ? 'open' : ''} ${showDot ? 'show-dot' : ''} ${showProgress ? 'show-progress' : ''}" data-key="${key}">
+    <div class="day ${isToday ? 'today' : ''} ${!total ? 'empty-day' : ''} ${isOpen ? 'open' : ''} ${showDot ? 'show-dot' : ''} ${showProgress ? 'show-progress' : ''}" data-key="${key}">
       <div class="day-header" data-key="${key}">
         <div class="day-name">
           <span>${dayLabel}</span>
@@ -2653,6 +2998,44 @@ function undatedHTML() {
   `;
 }
 
+function weekPlanHTML(days) {
+  const weekTasks = days.flatMap(d => getTaskRefsForDay(dateKey(d)).map(ref => ({ ...ref, day: d, key: dateKey(d) })));
+  const pending = weekTasks.filter(ref => !ref.task.done).length;
+  return `
+    <section class="week-plan-view last-section" data-week-plan>
+      <div class="week-plan-header">
+        <div class="week-plan-title">Plan week</div>
+        <div class="week-plan-subtitle">${pending} open<br>${weekTasks.length} total</div>
+      </div>
+      <div class="week-plan-grid">
+        ${days.map(d => {
+          const key = dateKey(d);
+          const refs = getTaskRefsForDay(key);
+          const open = refs.filter(ref => !ref.task.done).length;
+          const done = refs.length - open;
+          const preview = refs.slice(0, 2).map(ref => ref.task.text).join(' · ') || emptyDayMessage(d);
+          return `
+            <button type="button" class="week-plan-day ${isSameDate(d, today) ? 'today' : ''}" data-key="${key}">
+              <span class="week-plan-date">
+                <strong>${d.getDate()}</strong>
+                <span>${DAYS_SHORT[d.getDay()]}</span>
+              </span>
+              <span class="week-plan-main">
+                <span class="week-plan-name">${isSameDate(d, today) ? 'Today' : DAYS_FULL[d.getDay()]}</span>
+                <span class="week-plan-preview">${escapeHtml(preview)}</span>
+              </span>
+              <span class="week-plan-metrics">
+                <span class="week-plan-count">${open || '0'} open</span>
+                <span>${done} done</span>
+              </span>
+            </button>
+          `;
+        }).join('')}
+      </div>
+    </section>
+  `;
+}
+
 function focusDayOrder(d) {
   const diff = Math.round((stripTime(d) - stripTime(today)) / MS_DAY);
   return diff >= 0 ? diff : 7 + diff;
@@ -2669,7 +3052,7 @@ function mount() {
   syncDateHero();
   const app = document.getElementById('app');
   const days = getDaysForCurrentView();
-  if (!days.length && !settings.onlyNext7 && settings.viewMode !== 'undated') {
+  if (!days.length && !settings.onlyNext7 && !['undated', 'week'].includes(settings.viewMode)) {
     app.innerHTML = `
       <div class="empty-state">
         <strong>No days selected</strong>
@@ -2681,6 +3064,8 @@ function mount() {
       ? nextSevenHTML()
       : settings.viewMode === 'agenda'
         ? agendaHTML(days)
+        : settings.viewMode === 'week'
+          ? weekPlanHTML(days.length ? days : getWeekDays())
         : settings.viewMode === 'undated'
           ? undatedHTML()
           : days.map(dayHTML).join('');
@@ -2700,7 +3085,7 @@ function syncShellColors() {
   const app = document.getElementById('app');
   if (!app) return;
   app.querySelectorAll('.last-section').forEach(el => el.classList.remove('last-section'));
-  const sections = app.querySelectorAll('.day, .inbox, .agenda-view, .next7-view, .undated-view');
+  const sections = app.querySelectorAll('.day, .inbox, .agenda-view, .next7-view, .undated-view, .week-plan-view');
   const lastSection = sections[sections.length - 1];
   if (lastSection) lastSection.classList.add('last-section');
 }
@@ -2737,12 +3122,13 @@ function updateDayMeta(key) {
   const pct = total ? Math.round((done / total) * 100) : 0;
   const showDot = total > 0 && done === 0;
   const showProgress = total > 0 && done > 0 && done < total;
+  dayEl.classList.toggle('empty-day', total === 0);
   dayEl.classList.toggle('show-dot', showDot);
   dayEl.classList.toggle('show-progress', showProgress);
   const fill = dayEl.querySelector('.day-progress-fill');
   if (fill) fill.style.width = pct + '%';
   const status = dayEl.querySelector('.day-status');
-  if (status) status.textContent = total ? `${pending} left` : 'Clear';
+  if (status) status.textContent = dayStatusLabel(total, pending, parseDateKey(key));
 }
 function updateAgendaMeta(key) {
   const btn = document.querySelector(`.agenda-day[data-key="${key}"]`);
@@ -2760,6 +3146,12 @@ function toggleTask(key, id) {
   document.querySelectorAll(`.task-item[data-origin-key="${key}"][data-id="${id}"] .task`).forEach(taskEl => {
     taskEl.classList.toggle('done', item.done);
   });
+  document.querySelectorAll(`.task-item[data-origin-key="${key}"][data-id="${id}"]`).forEach(el => {
+    el.classList.remove('micro-pop');
+    void el.offsetWidth;
+    el.classList.add('micro-pop');
+  });
+  showToast(item.done ? 'Done' : 'Back on the board', 1400);
   document.querySelectorAll(`.task-item[data-origin-key="${key}"][data-id="${id}"]`).forEach(el => updateDayMeta(el.dataset.key));
   document.querySelectorAll(`.task-item[data-origin-key="${key}"][data-id="${id}"]`).forEach(el => updateAgendaMeta(el.dataset.key));
 }
@@ -3048,6 +3440,15 @@ function bindAppEvents() {
       }, 190);
     });
   });
+  document.querySelectorAll('.week-plan-day').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedAgendaKey = btn.dataset.key;
+      settings.viewMode = 'agenda';
+      settings.onlyNext7 = false;
+      saveSettings();
+      mount();
+    });
+  });
   document.querySelectorAll('.inbox-item').forEach(item => {
     const id = item.dataset.inboxId;
     const textEl = item.querySelector('[data-action="inbox-edit"]');
@@ -3131,6 +3532,10 @@ function bindTaskEvents(itemEl) {
   itemEl.querySelector('[data-action="meta"]').addEventListener('click', e => {
     e.stopPropagation();
     toggleMetaEditor(key, id);
+  });
+  itemEl.querySelector('[data-action="snooze"]').addEventListener('click', e => {
+    e.stopPropagation();
+    snoozeTask(key, id, itemEl.dataset.key);
   });
   // Text edit
   const textEl = itemEl.querySelector('[data-action="edit"]');
@@ -3280,11 +3685,12 @@ function onPointerEnd(e) {
       if (item && !item.done) toggleTask(key, id);
       snapBack();
     } else if (gesture.dx < -threshold) {
-      // swipe-left = delete
+      // swipe-left = move to tomorrow
       const key = gesture.taskItem.dataset.originKey || gesture.taskItem.dataset.key;
       const id  = gesture.taskItem.dataset.id;
+      const fromKey = gesture.taskItem.dataset.key;
       gesture.taskEl.style.transform = `translateX(-100%)`;
-      setTimeout(() => deleteTask(key, id), 100);
+      setTimeout(() => snoozeTask(key, id, fromKey), 90);
       cleanupGesture();
       return;
     } else {
@@ -3345,10 +3751,22 @@ function moveTaskToDay(originKey, id, targetKey) {
   if (!arr.length) delete data[originKey];
   if (!data[targetKey]) data[targetKey] = [];
   normalizeTaskRange(moved, targetKey);
+  const reminder = toDateTimeInputValue(moved.notifyAt);
+  if (reminder) moved.notifyAt = `${targetKey}T${reminder.split('T')[1]}`;
   data[targetKey].push(moved);
   save(STORAGE.data, data);
   mount();
   scheduleAutoBackup('move');
+}
+
+function snoozeTask(originKey, id, fromKey = dateKey(today)) {
+  const targetKey = dateKey(addDays(parseDateKey(fromKey || dateKey(today)), 1));
+  const itemEls = Array.from(document.querySelectorAll(`.task-item[data-origin-key="${originKey}"][data-id="${id}"]`));
+  itemEls.forEach(el => el.classList.add('micro-move'));
+  setTimeout(() => {
+    moveTaskToDay(originKey, id, targetKey);
+    showToast(`Moved to ${relativeDayLabel(targetKey)}`);
+  }, 180);
 }
 
 function cleanupGesture() {
@@ -3443,6 +3861,24 @@ async function requestNotificationPermission() {
   return result === 'granted';
 }
 
+function templatePreviewDates(tpl, count = 5) {
+  const start = stripTime(today);
+  const dates = [];
+  for (let i = 0; i < 42 && dates.length < count; i++) {
+    const d = addDays(start, i);
+    const k = dateKey(d);
+    if (tpl.endDate && compareDateKeys(k, tpl.endDate) > 0) break;
+    if (getTemplateDates(tpl, [d], start).length) dates.push(d);
+  }
+  return dates;
+}
+
+function templatePreviewHTML(tpl) {
+  const dates = templatePreviewDates(tpl);
+  if (!dates.length) return '<span>No upcoming dates</span>';
+  return dates.map(d => `<span>${DAYS_SHORT[d.getDay()]} ${d.getDate()}</span>`).join('');
+}
+
 function renderRecurringList() {
   const container = document.getElementById('recur-list');
   if (!templates.length) {
@@ -3486,6 +3922,9 @@ function renderRecurringList() {
         <label data-mode-field="monthly">Day
           <input type="number" min="1" max="31" step="1" inputmode="numeric" data-action="recur-month-day" value="${clampNumber(tpl.monthDay || today.getDate(), 1, 31)}">
         </label>
+      </div>
+      <div class="recur-preview" aria-label="Upcoming occurrences">
+        ${templatePreviewHTML(tpl)}
       </div>
     </div>
   `).join('');
@@ -3746,7 +4185,7 @@ actionMenu.addEventListener('click', e => {
   }
   if (action === 'view-mode') {
     const mode = btn.dataset.viewMode;
-    if (!['list', 'agenda', 'undated'].includes(mode)) return;
+    if (!['list', 'agenda', 'undated', 'week'].includes(mode)) return;
     settings.viewMode = mode;
     settings.onlyNext7 = false;
     if (mode === 'agenda') selectedAgendaKey = dateKey(today);
@@ -3918,7 +4357,7 @@ function applyImportedBackup(obj) {
   if (obj.dismissed && typeof obj.dismissed === 'object') { dismissed = obj.dismissed; save(STORAGE.dismissed, dismissed); }
   if (obj.settings && typeof obj.settings === 'object') {
     settings = Object.assign({ visibleDays: [0,1,2,3,4,5,6], showLeftovers: true, theme: 'dark', notifications: false, viewMode: 'list', onlyNext7: false }, obj.settings);
-    if (!['list', 'agenda', 'undated'].includes(settings.viewMode)) settings.viewMode = 'list';
+    if (!['list', 'agenda', 'undated', 'week'].includes(settings.viewMode)) settings.viewMode = 'list';
     saveSettings();
   }
   createLocalBackup('imported', true);
@@ -4052,10 +4491,48 @@ setInterval(() => {
   }
 }, 30000);
 
+/* ====================== Offline + install feedback ====================== */
+function renderInstallPrompt() {
+  const promptEl = document.getElementById('install-prompt');
+  if (!promptEl) return;
+  const dismissedInstall = localStorage.getItem('daily-tasks-install-dismissed-v1') === 'true';
+  promptEl.classList.toggle('show', !!deferredInstallPrompt && !dismissedInstall && !isStandaloneApp());
+}
+
+window.addEventListener('online', () => showAppStatus('Back online · changes are local', 'ready'));
+window.addEventListener('offline', () => showAppStatus('Offline mode · tasks keep working', 'offline', 4200));
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  renderInstallPrompt();
+});
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  localStorage.setItem('daily-tasks-install-dismissed-v1', 'true');
+  renderInstallPrompt();
+  showAppStatus('Installed on this device', 'ready');
+});
+document.getElementById('install-confirm')?.addEventListener('click', async () => {
+  if (!deferredInstallPrompt) return;
+  const promptEvent = deferredInstallPrompt;
+  deferredInstallPrompt = null;
+  renderInstallPrompt();
+  promptEvent.prompt();
+  try { await promptEvent.userChoice; } catch {}
+});
+document.getElementById('install-dismiss')?.addEventListener('click', () => {
+  localStorage.setItem('daily-tasks-install-dismissed-v1', 'true');
+  renderInstallPrompt();
+});
+if (!navigator.onLine) showAppStatus('Offline mode · tasks keep working', 'offline', 4200);
+
 /* ====================== Service worker ====================== */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => navigator.serviceWorker.ready)
+      .then(() => showAppStatus('Offline ready', 'ready', 1800))
+      .catch(() => showAppStatus('Offline cache unavailable', 'offline', 3200));
   });
 }
 
