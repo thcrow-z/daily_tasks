@@ -76,10 +76,18 @@
   --date-hero-collapsed-h: max(76px, calc(var(--sa-top) + 62px));
   --date-scroll-top: var(--date-hero-open-h);
   --date-collapse-progress: 0;
-  --date-main-x: 0px;
-  --date-main-y: 0px;
-  --date-main-scale: 1;
+  --date-day-x: 0px;
+  --date-day-y: 0px;
+  --date-day-scale: 1;
+  --date-month-x: 0px;
+  --date-month-y: 0px;
+  --date-month-scale: 1;
+  --date-year-x: 0px;
+  --date-year-y: 0px;
+  --date-year-scale: 1;
+  --date-weekday-x: 0px;
   --date-weekday-y: 0px;
+  --date-weekday-scale: 1;
   --float-right: max(20px, calc(var(--sa-right) + 16px), calc((100vw - 560px) / 2 + 16px));
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -217,49 +225,10 @@ body {
   -webkit-backdrop-filter: blur(18px) saturate(160%);
   z-index: -1;
 }
-.date-hero-topbar {
-  position: absolute;
-  top: 0;
-  left: max(var(--page-pad), var(--sa-left));
-  right: max(var(--page-pad), var(--sa-right));
-  height: var(--date-hero-collapsed-h);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  opacity: var(--date-collapse-progress);
-  transform: translateY(calc((1 - var(--date-collapse-progress)) * -10px));
-  will-change: opacity, transform;
-}
-.date-topbar-day {
-  color: var(--date-primary);
-  font-size: 29px;
-  font-weight: 760;
-  line-height: 1;
-}
-.date-topbar-month,
-.date-topbar-year,
-.date-topbar-weekday {
-  color: var(--text);
-  font-size: 12px;
-  font-weight: 820;
-  line-height: 1;
-  text-transform: uppercase;
-}
-.date-topbar-year,
-.date-topbar-weekday {
-  color: var(--date-secondary);
-}
-.date-topbar-weekday {
-  margin-left: auto;
-}
 .date-hero-main {
   min-width: 0;
   display: grid;
   justify-items: start;
-  opacity: calc(1 - var(--date-collapse-progress));
-  transform: translate(var(--date-main-x), var(--date-main-y)) scale(var(--date-main-scale));
-  transform-origin: left bottom;
-  will-change: opacity, transform;
 }
 .date-hero-day {
   font-size: 196px;
@@ -267,6 +236,9 @@ body {
   line-height: 0.7;
   letter-spacing: 0;
   color: var(--date-primary);
+  transform: translate3d(var(--date-day-x), var(--date-day-y), 0) scale(var(--date-day-scale));
+  transform-origin: left top;
+  will-change: transform;
 }
 .date-hero-month,
 .date-hero-year {
@@ -280,7 +252,9 @@ body {
   font-size: 38px;
   line-height: 0.9;
   color: var(--text);
-  opacity: calc(1 - (var(--date-collapse-progress) * 0.1));
+  transform: translate3d(var(--date-month-x), var(--date-month-y), 0) scale(var(--date-month-scale));
+  transform-origin: left top;
+  will-change: transform;
 }
 .date-hero-year {
   margin-top: 2px;
@@ -288,7 +262,9 @@ body {
   font-weight: 440;
   line-height: 0.9;
   color: var(--date-secondary);
-  opacity: calc(1 - (var(--date-collapse-progress) * 0.55));
+  transform: translate3d(var(--date-year-x), var(--date-year-y), 0) scale(var(--date-year-scale));
+  transform-origin: left top;
+  will-change: transform;
 }
 .date-hero-weekday {
   padding: 0 6px 1px 18px;
@@ -296,12 +272,11 @@ body {
   font-size: 40px;
   font-weight: 360;
   line-height: 1;
-  opacity: calc(1 - var(--date-collapse-progress));
   transform:
-    translateY(var(--date-weekday-y))
-    scale(calc(1 - (var(--date-collapse-progress) * 0.25)));
-  transform-origin: right bottom;
-  will-change: transform, opacity;
+    translate3d(var(--date-weekday-x), var(--date-weekday-y), 0)
+    scale(var(--date-weekday-scale));
+  transform-origin: left top;
+  will-change: transform;
 }
 
 .app {
@@ -2277,12 +2252,6 @@ body[data-theme="light"] .capture-actions .capture-submit { background: var(--ac
 </svg>
 
 <section class="date-hero" id="date-hero" aria-label="Current date">
-  <div class="date-hero-topbar" aria-hidden="true">
-    <span class="date-topbar-day" id="date-topbar-day"></span>
-    <span class="date-topbar-month" id="date-topbar-month"></span>
-    <span class="date-topbar-year" id="date-topbar-year"></span>
-    <span class="date-topbar-weekday" id="date-topbar-weekday"></span>
-  </div>
   <div class="date-hero-main">
     <div class="date-hero-day" id="date-hero-day"></div>
     <div class="date-hero-month" id="date-hero-month"></div>
@@ -2953,11 +2922,7 @@ function syncDateHero() {
   const monthEl = document.getElementById('date-hero-month');
   const yearEl = document.getElementById('date-hero-year');
   const weekdayEl = document.getElementById('date-hero-weekday');
-  const topbarDayEl = document.getElementById('date-topbar-day');
-  const topbarMonthEl = document.getElementById('date-topbar-month');
-  const topbarYearEl = document.getElementById('date-topbar-year');
-  const topbarWeekdayEl = document.getElementById('date-topbar-weekday');
-  if (!dayEl || !monthEl || !yearEl || !weekdayEl || !topbarDayEl || !topbarMonthEl || !topbarYearEl || !topbarWeekdayEl) return;
+  if (!dayEl || !monthEl || !yearEl || !weekdayEl) return;
   const day = String(today.getDate());
   const month = MONTHS_EN[today.getMonth()].slice(0, 3);
   const year = String(today.getFullYear());
@@ -2966,13 +2931,106 @@ function syncDateHero() {
   monthEl.textContent = month;
   yearEl.textContent = year;
   weekdayEl.textContent = weekday;
-  topbarDayEl.textContent = day;
-  topbarMonthEl.textContent = month;
-  topbarYearEl.textContent = year;
-  topbarWeekdayEl.textContent = weekday;
+  dateHeroGeometry = null;
 }
 
 let dateHeroFrame = 0;
+let dateHeroGeometry = null;
+
+function setDateHeroOpenVars(root) {
+  root.style.setProperty('--date-day-x', '0px');
+  root.style.setProperty('--date-day-y', '0px');
+  root.style.setProperty('--date-day-scale', '1');
+  root.style.setProperty('--date-month-x', '0px');
+  root.style.setProperty('--date-month-y', '0px');
+  root.style.setProperty('--date-month-scale', '1');
+  root.style.setProperty('--date-year-x', '0px');
+  root.style.setProperty('--date-year-y', '0px');
+  root.style.setProperty('--date-year-scale', '1');
+  root.style.setProperty('--date-weekday-x', '0px');
+  root.style.setProperty('--date-weekday-y', '0px');
+  root.style.setProperty('--date-weekday-scale', '1');
+}
+
+function measureDateHeroGeometry(root, hero, scrollEl) {
+  setDateHeroOpenVars(root);
+
+  const heroStyle = getComputedStyle(hero);
+  const dayEl = document.getElementById('date-hero-day');
+  const monthEl = document.getElementById('date-hero-month');
+  const yearEl = document.getElementById('date-hero-year');
+  const weekdayEl = document.getElementById('date-hero-weekday');
+  if (!dayEl || !monthEl || !yearEl || !weekdayEl) return null;
+
+  const openHeight = hero.getBoundingClientRect().height || Math.max(390, window.innerHeight * 0.5);
+  const paddingTop = parseFloat(heroStyle.paddingTop) || 48;
+  const paddingRight = parseFloat(heroStyle.paddingRight) || 18;
+  const paddingBottom = parseFloat(heroStyle.paddingBottom) || 58;
+  const paddingLeft = parseFloat(heroStyle.paddingLeft) || 18;
+  const collapsedHeight = Math.max(76, paddingTop + 28);
+  const collapseDistance = Math.max(150, Math.min(280, openHeight - collapsedHeight));
+  const heroRect = hero.getBoundingClientRect();
+  const rects = {
+    day: dayEl.getBoundingClientRect(),
+    month: monthEl.getBoundingClientRect(),
+    year: yearEl.getBoundingClientRect(),
+    weekday: weekdayEl.getBoundingClientRect()
+  };
+  const targetY = heroRect.top + Math.max(paddingTop * 0.48, (collapsedHeight - 29) / 2);
+  const dayScale = 29 / Math.max(1, rects.day.height);
+  const monthScale = 12 / Math.max(1, rects.month.height);
+  const yearScale = 12 / Math.max(1, rects.year.height);
+  const weekdayScale = 12 / Math.max(1, rects.weekday.height);
+  const dayTargetX = heroRect.left + paddingLeft;
+  const dayTargetY = heroRect.top + Math.max(paddingTop * 0.38, (collapsedHeight - (rects.day.height * dayScale)) / 2);
+  const monthTargetX = dayTargetX + (rects.day.width * dayScale) + 8;
+  const monthTargetY = targetY;
+  const yearTargetX = monthTargetX + (rects.month.width * monthScale) + 7;
+  const yearTargetY = targetY;
+  const weekdayTargetX = heroRect.right - paddingRight - (rects.weekday.width * weekdayScale);
+  const weekdayTargetY = targetY;
+
+  return {
+    openHeight,
+    collapsedHeight,
+    collapseDistance,
+    heroTop: heroRect.top,
+    paddingBottom,
+    scrollMax: Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight),
+    items: {
+      day: {
+        rect: rects.day,
+        dx: dayTargetX - rects.day.left,
+        dy: dayTargetY - rects.day.top,
+        scale: dayScale
+      },
+      month: {
+        rect: rects.month,
+        dx: monthTargetX - rects.month.left,
+        dy: monthTargetY - rects.month.top,
+        scale: monthScale
+      },
+      year: {
+        rect: rects.year,
+        dx: yearTargetX - rects.year.left,
+        dy: yearTargetY - rects.year.top,
+        scale: yearScale
+      },
+      weekday: {
+        rect: rects.weekday,
+        dx: weekdayTargetX - rects.weekday.left,
+        dy: weekdayTargetY - rects.weekday.top,
+        scale: weekdayScale
+      }
+    }
+  };
+}
+
+function transformedBottom(item, t) {
+  const scale = 1 + ((item.scale - 1) * t);
+  return item.rect.bottom + (item.dy * t) + (item.rect.height * (scale - 1));
+}
+
 function updateDateHeroCollapse() {
   if (dateHeroFrame) return;
   dateHeroFrame = requestAnimationFrame(() => {
@@ -2982,24 +3040,37 @@ function updateDateHeroCollapse() {
     const scrollEl = document.getElementById('app-scroll');
     if (!hero || !scrollEl) return;
 
-    const heroStyle = getComputedStyle(hero);
-    const openHeight = hero.getBoundingClientRect().height || Math.max(390, window.innerHeight * 0.5);
-    const paddingTop = parseFloat(heroStyle.paddingTop) || 48;
-    const paddingBottom = parseFloat(heroStyle.paddingBottom) || 58;
-    const collapsedHeight = Math.max(76, paddingTop + 28);
-    const collapseDistance = Math.max(140, Math.min(260, openHeight - collapsedHeight));
-    const progress = Math.min(1, Math.max(0, scrollEl.scrollTop / collapseDistance));
-    const scrollTop = openHeight - ((openHeight - collapsedHeight) * progress);
-    const compactBottom = collapsedHeight - 12;
-    const mainY = ((compactBottom) - (openHeight - paddingBottom)) * progress;
-    const scale = 1 - (progress * 0.68);
+    if (!dateHeroGeometry || Math.abs(dateHeroGeometry.scrollMax - Math.max(0, scrollEl.scrollHeight - scrollEl.clientHeight)) > 24) {
+      dateHeroGeometry = measureDateHeroGeometry(root, hero, scrollEl);
+    }
+    const geo = dateHeroGeometry;
+    if (!geo) return;
+
+    const progress = Math.min(1, Math.max(0, scrollEl.scrollTop / geo.collapseDistance));
+    const t = 1 - Math.pow(1 - progress, 1.25);
+    const baseScrollTop = geo.openHeight - ((geo.openHeight - geo.collapsedHeight) * t);
+    const visualBottom = Math.max(
+      transformedBottom(geo.items.day, t),
+      transformedBottom(geo.items.month, t),
+      transformedBottom(geo.items.year, t),
+      transformedBottom(geo.items.weekday, t)
+    );
+    const guardedScrollTop = Math.max(geo.collapsedHeight, visualBottom - geo.heroTop + 18);
+    const scrollTop = Math.max(baseScrollTop, guardedScrollTop);
+
+    const applyItem = (name, item) => {
+      const scale = 1 + ((item.scale - 1) * t);
+      root.style.setProperty(`--date-${name}-x`, `${(item.dx * t).toFixed(2)}px`);
+      root.style.setProperty(`--date-${name}-y`, `${(item.dy * t).toFixed(2)}px`);
+      root.style.setProperty(`--date-${name}-scale`, scale.toFixed(3));
+    };
 
     root.style.setProperty('--date-collapse-progress', progress.toFixed(3));
     root.style.setProperty('--date-scroll-top', `${scrollTop.toFixed(2)}px`);
-    root.style.setProperty('--date-main-x', `${(progress * 4).toFixed(2)}px`);
-    root.style.setProperty('--date-main-y', `${mainY.toFixed(2)}px`);
-    root.style.setProperty('--date-main-scale', scale.toFixed(3));
-    root.style.setProperty('--date-weekday-y', `${(mainY - (progress * 10)).toFixed(2)}px`);
+    applyItem('day', geo.items.day);
+    applyItem('month', geo.items.month);
+    applyItem('year', geo.items.year);
+    applyItem('weekday', geo.items.weekday);
   });
 }
 
@@ -4662,9 +4733,13 @@ if (!navigator.onLine) showAppStatus('Offline mode · tasks keep working', 'offl
 
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 if (appScrollEl) appScrollEl.scrollTop = 0;
+function handleDateHeroResize() {
+  dateHeroGeometry = null;
+  updateDateHeroCollapse();
+}
 appScrollEl?.addEventListener('scroll', updateDateHeroCollapse, { passive: true });
-window.addEventListener('resize', updateDateHeroCollapse);
-window.visualViewport?.addEventListener('resize', updateDateHeroCollapse);
+window.addEventListener('resize', handleDateHeroResize);
+window.visualViewport?.addEventListener('resize', handleDateHeroResize);
 
 /* ====================== Service worker ====================== */
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
